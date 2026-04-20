@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LootLocker Profile</title>
+    <script>
+      (function () {
+        var match = document.cookie.match(
+          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
+        );
+        var saved = match ? match[1] : null;
+        var isDark =
+          saved === "dark" ||
+          (!saved &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (isDark) {
+          document.documentElement.classList.add("theme-dark");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <p
+        id="copyUidStatus"
+        class="notice top-toast hidden"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+      <header class="topbar">
+        <div class="brand">
+          <img
+            id="brandLogo"
+            src="styles/logo-lightmode.svg"
+            class="profile-logo"
+            alt="LootLocker"
+          />
+        </div>
+        <div class="topbar-actions">
+          <button
+            id="themeToggleButton"
+            class="button button--ghost button--small theme-toggle"
+            aria-label="Enable dark mode"
+            type="button"
+          >
+            <span aria-hidden="true">🌙</span>
+          </button>
+          <button id="logoutButton" class="button button--ghost" type="button">
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <section class="profile-summary" aria-label="Player summary">
+        <div class="profile-head">
+          <div id="avatar" class="avatar">--</div>
+          <div class="profile-identity">
+            <h2 id="playerName">Player</h2>
+            <div class="profile-uid-row">
+              <p id="playerUid" class="muted">UID</p>
+              <button
+                id="copyUidButton"
+                class="button button--ghost button--small copy-uid-button"
+                aria-label="Copy Public UID"
+                title="Copy Public UID"
+                type="button"
+              >
+                <span aria-hidden="true">📋</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <a
+            class="stat stat-link"
+            href="profile/friends.html"
+            aria-label="Open friends list"
+          >
+            <span class="stat__label">Friends</span>
+            <strong id="friendsCount">0</strong>
+          </a>
+          <a
+            class="stat stat-link"
+            href="profile/followers.html"
+            aria-label="Open followers list"
+          >
+            <span class="stat__label">Followers</span>
+            <strong id="followersCount">0</strong>
+          </a>
+          <a
+            class="stat stat-link"
+            href="profile/following.html"
+            aria-label="Open following list"
+          >
+            <span class="stat__label">Following</span>
+            <strong id="followingCount">0</strong>
+          </a>
+        </div>
+      </section>
+
+      <nav class="page-tabs" aria-label="Profile navigation">
+        <a
+          class="page-tab-link is-active"
+          href="profile.html"
+          aria-current="page"
+          >Profile</a
+        >
+        <a class="page-tab-link" href="profile/friends.html">Friends</a>
+        <a class="page-tab-link" href="profile/followers.html">Followers</a>
+        <a class="page-tab-link" href="profile/following.html">Following</a>
+        <a class="page-tab-link" href="profile/platforms.html"
+          >Connected Accounts</a
+        >
+      </nav>
+      <div class="page-tabs-divider" aria-hidden="true"></div>
+
+      <section
+        id="globalError"
+        class="notice notice--error hidden"
+        role="alert"
+      ></section>
+
+      <section id="appView" class="content" aria-live="polite">
+        <article class="card">
+          <div class="section-title-row">
+            <h3>Settings</h3>
+          </div>
+
+          <div class="platform-table-wrap">
+            <table
+              class="platform-table settings-table"
+              aria-label="Account details"
+            >
+              <tbody>
+                <tr>
+                  <td><span class="stat__label">Public UID</span></td>
+                  <td><strong id="settingsPublicUid">-</strong></td>
+                </tr>
+                <tr>
+                  <td><span class="stat__label">Joined</span></td>
+                  <td><strong id="settingsJoinedAt">Unknown</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-title-row">
+            <h3>Change Password</h3>
+          </div>
+          <p class="muted">
+            For security, password updates are handled through a reset link sent
+            by email.
+          </p>
+          <form id="passwordResetForm" class="settings-form">
+            <label class="field" for="settingsEmailInput">
+              <span>Email</span>
+              <input
+                id="settingsEmailInput"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+
+            <div class="settings-form__actions">
+              <button id="passwordResetButton" class="button" type="submit">
+                Send reset email
+              </button>
+            </div>
+          </form>
+          <p
+            id="passwordResetStatus"
+            class="notice hidden"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="scripts/pages/profile.js"></script>
+  </body>
+</html>

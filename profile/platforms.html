@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connected Accounts | LootLocker Profile</title>
+    <script>
+      (function () {
+        var match = document.cookie.match(
+          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
+        );
+        var saved = match ? match[1] : null;
+        var isDark =
+          saved === "dark" ||
+          (!saved &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (isDark) {
+          document.documentElement.classList.add("theme-dark");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="../styles/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <p
+        id="copyUidStatus"
+        class="notice top-toast hidden"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+      <header class="topbar">
+        <div class="brand">
+          <a href="../profile.html" aria-label="Back to profile">
+            <img
+              id="brandLogo"
+              src="../styles/logo-lightmode.svg"
+              class="profile-logo"
+              alt="LootLocker"
+            />
+          </a>
+        </div>
+        <div class="topbar-actions">
+          <button
+            id="themeToggleButton"
+            class="button button--ghost button--small theme-toggle"
+            aria-label="Enable dark mode"
+            type="button"
+          >
+            <span aria-hidden="true">🌙</span>
+          </button>
+          <button id="logoutButton" class="button button--ghost" type="button">
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <section class="profile-summary" aria-label="Player summary">
+        <div class="profile-head">
+          <div id="avatar" class="avatar">--</div>
+          <div class="profile-identity">
+            <h2 id="playerName">Player</h2>
+            <div class="profile-uid-row">
+              <p id="playerUid" class="muted">UID</p>
+              <button
+                id="copyUidButton"
+                class="button button--ghost button--small copy-uid-button"
+                aria-label="Copy Public UID"
+                title="Copy Public UID"
+                type="button"
+              >
+                <span aria-hidden="true">📋</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <a class="stat stat-link" href="friends.html">
+            <span class="stat__label">Friends</span>
+            <strong id="friendsCount">0</strong>
+          </a>
+          <a class="stat stat-link" href="followers.html">
+            <span class="stat__label">Followers</span>
+            <strong id="followersCount">0</strong>
+          </a>
+          <a class="stat stat-link" href="following.html">
+            <span class="stat__label">Following</span>
+            <strong id="followingCount">0</strong>
+          </a>
+        </div>
+      </section>
+
+      <nav class="page-tabs" aria-label="Profile navigation">
+        <a class="page-tab-link" href="../profile.html">Profile</a>
+        <a class="page-tab-link" href="friends.html">Friends</a>
+        <a class="page-tab-link" href="followers.html">Followers</a>
+        <a class="page-tab-link" href="following.html">Following</a>
+        <a
+          class="page-tab-link is-active"
+          href="platforms.html"
+          aria-current="page"
+          >Connected Accounts</a
+        >
+      </nav>
+      <div class="page-tabs-divider" aria-hidden="true"></div>
+
+      <section
+        id="globalError"
+        class="notice notice--error hidden"
+        role="alert"
+      ></section>
+
+      <section class="content" aria-live="polite">
+        <article class="card">
+          <div class="section-title-row">
+            <h3>Connected Accounts</h3>
+          </div>
+          <p
+            id="platformsError"
+            class="notice notice--error hidden"
+            role="alert"
+          ></p>
+          <div class="platform-table-wrap">
+            <table class="platform-table" aria-label="Platform link status">
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="platformsTableBody">
+                <tr>
+                  <td colspan="3" class="muted">
+                    Loading connected accounts...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section
+        id="connectModal"
+        class="modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="connectModalTitle"
+      >
+        <div class="modal__card">
+          <h3 id="connectModalTitle">Connect Account</h3>
+          <p class="muted">
+            Scan the QR, or click
+            <a
+              id="connectLink"
+              class="modal__inline-link"
+              href="#"
+              target="_blank"
+              rel="noopener"
+              >here</a
+            >, then confirm once completed.
+          </p>
+          <div
+            id="connectLoading"
+            class="connect-loading hidden"
+            aria-live="polite"
+          >
+            <span class="connect-loading__spinner" aria-hidden="true"></span>
+            <span>Preparing secure connection...</span>
+          </div>
+          <img
+            id="connectQrImage"
+            class="modal__qr hidden"
+            src=""
+            alt="Account connection QR"
+          />
+          <p
+            id="connectStatus"
+            class="notice notice--error hidden"
+            role="alert"
+          ></p>
+          <div class="modal__actions">
+            <button id="connectDoneButton" class="button" type="button">
+              I have connected my account
+            </button>
+            <button
+              id="connectCancelButton"
+              class="button button--ghost"
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="../scripts/pages/platforms.js"></script>
+  </body>
+</html>

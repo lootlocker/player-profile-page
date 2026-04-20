@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content="0; url=login.html" />
+    <title>LootLocker Player Profile Reference</title>
+    <script>
+      (function () {
+        var match = document.cookie.match(
+          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
+        );
+        var saved = match ? match[1] : null;
+        var isDark =
+          saved === "dark" ||
+          (!saved &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (isDark) {
+          document.documentElement.classList.add("theme-dark");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="card auth-card">
+        <p>Redirecting to login...</p>
+        <p class="muted auth-switch">
+          If not redirected, <a href="login.html">open login.html</a>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

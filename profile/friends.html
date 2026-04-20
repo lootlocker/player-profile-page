@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Friends | LootLocker Profile</title>
+    <script>
+      (function () {
+        var match = document.cookie.match(
+          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
+        );
+        var saved = match ? match[1] : null;
+        var isDark =
+          saved === "dark" ||
+          (!saved &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (isDark) {
+          document.documentElement.classList.add("theme-dark");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="../styles/styles.css" />
+  </head>
+  <body data-social-type="friends" data-social-title="Friends">
+    <main class="shell">
+      <p
+        id="copyUidStatus"
+        class="notice top-toast hidden"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+      <header class="topbar">
+        <div class="brand">
+          <a href="../profile.html" aria-label="Back to profile">
+            <img
+              id="brandLogo"
+              src="../styles/logo-lightmode.svg"
+              class="profile-logo"
+              alt="LootLocker"
+            />
+          </a>
+        </div>
+        <div class="topbar-actions">
+          <button
+            id="themeToggleButton"
+            class="button button--ghost button--small theme-toggle"
+            aria-label="Enable dark mode"
+            type="button"
+          >
+            <span aria-hidden="true">🌙</span>
+          </button>
+          <button id="logoutButton" class="button button--ghost" type="button">
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <section class="profile-summary" aria-label="Player summary">
+        <div class="profile-head">
+          <div id="avatar" class="avatar">--</div>
+          <div class="profile-identity">
+            <h2 id="playerName">Player</h2>
+            <div class="profile-uid-row">
+              <p id="playerUid" class="muted">UID</p>
+              <button
+                id="copyUidButton"
+                class="button button--ghost button--small copy-uid-button"
+                aria-label="Copy Public UID"
+                title="Copy Public UID"
+                type="button"
+              >
+                <span aria-hidden="true">📋</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <a class="stat stat-link" href="friends.html">
+            <span class="stat__label">Friends</span>
+            <strong id="friendsCount">0</strong>
+          </a>
+          <a class="stat stat-link" href="followers.html">
+            <span class="stat__label">Followers</span>
+            <strong id="followersCount">0</strong>
+          </a>
+          <a class="stat stat-link" href="following.html">
+            <span class="stat__label">Following</span>
+            <strong id="followingCount">0</strong>
+          </a>
+        </div>
+      </section>
+
+      <nav class="page-tabs" aria-label="Profile navigation">
+        <a class="page-tab-link" href="../profile.html">Profile</a>
+        <a
+          class="page-tab-link is-active"
+          href="friends.html"
+          aria-current="page"
+          >Friends</a
+        >
+        <a class="page-tab-link" href="followers.html">Followers</a>
+        <a class="page-tab-link" href="following.html">Following</a>
+        <a class="page-tab-link" href="platforms.html">Connected Accounts</a>
+      </nav>
+      <div class="page-tabs-divider" aria-hidden="true"></div>
+
+      <section
+        id="globalError"
+        class="notice notice--error hidden"
+        role="alert"
+      ></section>
+
+      <section class="content" aria-live="polite">
+        <article class="card">
+          <div class="section-title-row section-title-row--start">
+            <h3 id="listTitle">Friends</h3>
+            <div class="social-head-actions">
+              <button
+                id="sendFriendRequestButton"
+                class="button button--small"
+                type="button"
+              >
+                Send request
+              </button>
+              <span class="social-total-pill" aria-label="Total friends">
+                <span class="social-total-pill__label">Total</span>
+                <strong id="listCount">0</strong>
+              </span>
+            </div>
+          </div>
+          <p
+            id="socialActionStatus"
+            class="notice hidden"
+            role="status"
+            aria-live="polite"
+          ></p>
+          <p
+            id="listError"
+            class="notice notice--error hidden"
+            role="alert"
+          ></p>
+          <div class="platform-table-wrap">
+            <table class="platform-table" aria-label="Friends list">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Public UID</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="socialList">
+                <tr>
+                  <td colspan="4" class="muted">Loading friends...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section
+        id="friendRequestModal"
+        class="modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="friendRequestModalTitle"
+      >
+        <div class="modal__card">
+          <h3 id="friendRequestModalTitle">Send Friend Request</h3>
+          <form id="friendRequestForm" class="settings-form">
+            <label class="field" for="friendRequestPublicUidInput">
+              <span>Player Public UID</span>
+              <input
+                id="friendRequestPublicUidInput"
+                type="text"
+                placeholder="Enter player Public UID"
+                autocomplete="off"
+                required
+              />
+            </label>
+            <p
+              id="friendRequestStatus"
+              class="notice hidden"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <div class="modal__actions">
+              <button
+                id="friendRequestCancelButton"
+                class="button button--ghost"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                id="friendRequestSubmitButton"
+                class="button"
+                type="submit"
+              >
+                Send request
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="../scripts/pages/social-list.js"></script>
+  </body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LootLocker Sign Up</title>
+    <script>
+      (function () {
+        var match = document.cookie.match(
+          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
+        );
+        var saved = match ? match[1] : null;
+        var isDark =
+          saved === "dark" ||
+          (!saved &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (isDark) {
+          document.documentElement.classList.add("theme-dark");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body class="auth-page" data-auth-mode="signup">
+    <main class="shell">
+      <section
+        id="globalError"
+        class="notice notice--error hidden"
+        role="alert"
+      ></section>
+
+      <section class="card auth-card">
+        <div class="auth-logo" aria-hidden="true">
+          <img id="authLogo" src="styles/logo-lightmode.svg" alt="" />
+        </div>
+        <form id="authForm" class="auth-form" method="post" novalidate>
+          <div class="auth-copy">
+            <h1>Create account</h1>
+            <p class="muted">Set up your LootLocker white label login.</p>
+          </div>
+
+          <label class="field">
+            <span>Email</span>
+            <input
+              id="emailInput"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <input
+              id="passwordInput"
+              name="password"
+              type="password"
+              placeholder="Create a password"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span>Confirm password</span>
+            <input
+              id="confirmPasswordInput"
+              name="confirmPassword"
+              type="password"
+              placeholder="Re-enter your password"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            />
+          </label>
+
+          <label class="checkbox-field">
+            <input id="rememberInput" name="remember" type="checkbox" checked />
+            <span>Keep me signed in</span>
+          </label>
+
+          <p
+            id="authError"
+            class="notice notice--error hidden"
+            role="alert"
+          ></p>
+
+          <button id="authSubmit" class="button" type="submit">
+            Create account
+          </button>
+
+          <p class="muted auth-switch">
+            Already have an account? <a href="login.html">Sign in</a>
+          </p>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      if (window.location.protocol === "file:") {
+        const globalError = document.getElementById("globalError");
+        globalError.textContent =
+          "You are running this page from file://. Use a local web server (for example: python3 -m http.server 8080) so modules, cookies, and API calls work reliably.";
+        globalError.classList.remove("hidden");
+      }
+    </script>
+    <script type="module" src="scripts/pages/auth.js"></script>
+  </body>
+</html>

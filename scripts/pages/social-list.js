@@ -1,0 +1,945 @@
+import { createApiClient } from "../api/client.js";
+import { CONFIG } from "../core/config.js";
+import { clearSessionToken, getSessionToken } from "../api/session.js";
+import {
+  clearNotice,
+  escapeHtml,
+  getCookie,
+  getInitials,
+  isSessionError,
+  readableError,
+  setCookie,
+  showNotice,
+} from "../core/utils.js";
+
+const state = {
+  sessionToken: getSessionToken(),
+  player: null,
+  copyUidStatusTimerId: null,
+  copyUidButtonTimerId: null,
+};
+
+const pageType = document.body.dataset.socialType || "friends";
+const pageTitle = document.body.dataset.socialTitle || "Friends";
+
+const THEME_ROOT_CLASS = "theme-dark";
+const THEME_QUERY = window.matchMedia("(prefers-color-scheme: dark)");
+const THEME_COOKIE_NAME = "ll_theme";
+const THEME_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
+const LOGO_BY_THEME = {
+  light: "../styles/logo-lightmode.svg",
+  dark: "../styles/logo-darkmode.svg",
+};
+const COPY_ICON = "📋";
+const COPY_SUCCESS_ICON = "✓";
+
+const api = createApiClient(CONFIG, () => state.sessionToken);
+
+const els = {
+  logoutButton: document.getElementById("logoutButton"),
+  globalError: document.getElementById("globalError"),
+  avatar: document.getElementById("avatar"),
+  playerName: document.getElementById("playerName"),
+  playerUid: document.getElementById("playerUid"),
+  copyUidButton: document.getElementById("copyUidButton"),
+  copyUidStatus: document.getElementById("copyUidStatus"),
+  friendsCount: document.getElementById("friendsCount"),
+  followersCount: document.getElementById("followersCount"),
+  followingCount: document.getElementById("followingCount"),
+  listTitle: document.getElementById("listTitle"),
+  listCount: document.getElementById("listCount"),
+  listError: document.getElementById("listError"),
+  list: document.getElementById("socialList"),
+  sendFriendRequestButton: document.getElementById("sendFriendRequestButton"),
+  friendRequestModal: document.getElementById("friendRequestModal"),
+  friendRequestForm: document.getElementById("friendRequestForm"),
+  friendRequestPublicUidInput: document.getElementById(
+    "friendRequestPublicUidInput",
+  ),
+  friendRequestStatus: document.getElementById("friendRequestStatus"),
+  friendRequestSubmitButton: document.getElementById(
+    "friendRequestSubmitButton",
+  ),
+  friendRequestCancelButton: document.getElementById(
+    "friendRequestCancelButton",
+  ),
+  pendingRequestsSection: document.getElementById("pendingRequestsSection"),
+  incomingCount: document.getElementById("incomingCount"),
+  outgoingCount: document.getElementById("outgoingCount"),
+  incomingList: document.getElementById("incomingList"),
+  outgoingList: document.getElementById("outgoingList"),
+  socialActionStatus: document.getElementById("socialActionStatus"),
+  brandLogo: document.getElementById("brandLogo"),
+  themeToggleButton: document.getElementById("themeToggleButton"),
+};
+
+function init() {
+  syncTheme(resolveInitialTheme());
+
+  if (!state.sessionToken) {
+    window.location.href = "../login.html";
+    return;
+  }
+
+  els.listTitle.textContent = pageTitle;
+  bindEvents();
+  showLoadingState();
+  hydratePage();
+}
+
+function bindEvents() {
+  els.logoutButton.addEventListener("click", signOut);
+  els.themeToggleButton?.addEventListener("click", toggleThemePreference);
+  els.copyUidButton?.addEventListener("click", handleCopyUid);
+  THEME_QUERY.addEventListener("change", handleThemeChange);
+
+  if (pageType === "friends" && els.sendFriendRequestButton) {
+    els.sendFriendRequestButton.addEventListener(
+      "click",
+      openFriendRequestModal,
+    );
+    els.list?.addEventListener("click", handleSocialListClick);
+    els.friendRequestForm?.addEventListener("submit", submitFriendRequest);
+    els.friendRequestCancelButton?.addEventListener(
+      "click",
+      closeFriendRequestModal,
+    );
+    els.friendRequestModal?.addEventListener("click", (event) => {
+      if (event.target === els.friendRequestModal) {
+        closeFriendRequestModal();
+      }
+    });
+  }
+}
+
+function handleThemeChange(event) {
+  if (getSavedTheme()) {
+    return;
+  }
+
+  syncTheme(event.matches);
+}
+
+function syncTheme(isDark) {
+  document.documentElement.classList.toggle(THEME_ROOT_CLASS, isDark);
+
+  if (els.themeToggleButton) {
+    const nextThemeLabel = isDark ? "Enable light mode" : "Enable dark mode";
+    els.themeToggleButton.innerHTML = `<span aria-hidden="true">${isDark ? "☀" : "🌙"}</span>`;
+    els.themeToggleButton.setAttribute("aria-label", nextThemeLabel);
+    els.themeToggleButton.setAttribute("title", nextThemeLabel);
+  }
+
+  if (els.brandLogo) {
+    els.brandLogo.src = isDark ? LOGO_BY_THEME.dark : LOGO_BY_THEME.light;
+  }
+}
+
+function resolveInitialTheme() {
+  const savedTheme = getSavedTheme();
+  if (savedTheme === "dark") {
+    return true;
+  }
+
+  if (savedTheme === "light") {
+    return false;
+  }
+
+  return THEME_QUERY.matches;
+}
+
+function getSavedTheme() {
+  const value = getCookie(THEME_COOKIE_NAME);
+  if (value === "light" || value === "dark") {
+    return value;
+  }
+
+  return null;
+}
+
+function toggleThemePreference() {
+  const isDark = document.documentElement.classList.contains(THEME_ROOT_CLASS);
+  const nextTheme = isDark ? "light" : "dark";
+
+  setCookie(THEME_COOKIE_NAME, nextTheme, {
+    maxAge: THEME_COOKIE_MAX_AGE,
+    sameSite: "Lax",
+    secure: window.location.protocol === "https:",
+  });
+
+  syncTheme(nextTheme === "dark");
+}
+
+function showLoadingState() {
+  els.playerName.textContent = "Loading profile...";
+  els.playerUid.textContent = "Please wait";
+  els.avatar.textContent = "..";
+  if (els.copyUidButton) {
+    els.copyUidButton.disabled = true;
+  }
+  resetCopyUidButtonIcon();
+  clearCopyUidStatus();
+  setSocialCounts(0, 0, 0);
+  if (pageType === "friends") {
+    els.list.innerHTML = `<tr><td colspan="4" class="muted table-empty">Loading friends...</td></tr>`;
+  } else if (pageType === "followers") {
+    els.list.innerHTML = `<tr><td colspan="2" class="muted table-empty">Loading followers...</td></tr>`;
+  } else if (pageType === "following") {
+    els.list.innerHTML = `<tr><td colspan="2" class="muted table-empty">Loading following...</td></tr>`;
+  } else {
+    els.list.innerHTML = `<li class="muted">Loading ${escapeHtml(pageTitle.toLowerCase())}...</li>`;
+  }
+}
+
+async function hydratePage() {
+  clearNotice(els.globalError);
+  clearNotice(els.listError);
+
+  try {
+    const info = await api.getInfoFromSession();
+    state.player = info.info;
+    renderProfile(state.player);
+
+    if (pageType === "friends") {
+      await hydrateFriendsPage(state.player.public_uid);
+      return;
+    }
+
+    await hydrateFollowerLikePage(state.player.public_uid);
+  } catch (error) {
+    handlePageError(error);
+  }
+}
+
+async function hydrateFriendsPage(publicUid) {
+  const [
+    friendsResult,
+    followersResult,
+    followingResult,
+    incomingResult,
+    outgoingResult,
+  ] = await Promise.allSettled([
+    api.listFriends(),
+    api.listFollowers(publicUid),
+    api.listFollowing(publicUid),
+    api.listIncomingFriendRequests(),
+    api.listOutgoingFriendRequests(),
+  ]);
+
+  setSocialCountsFromResults(friendsResult, followersResult, followingResult);
+
+  if (friendsResult.status !== "fulfilled") {
+    showNotice(els.listError, "Unable to load friends.");
+    els.listCount.textContent = "0";
+    renderFriendsTablePlaceholder("No friends found.");
+    return;
+  }
+
+  clearNotice(els.listError);
+  const friends = extractSocialRows(friendsResult.value);
+  const incomingRequests =
+    incomingResult.status === "fulfilled"
+      ? extractSocialRows(incomingResult.value)
+      : [];
+  const outgoingRequests =
+    outgoingResult.status === "fulfilled"
+      ? extractSocialRows(outgoingResult.value)
+      : [];
+
+  els.listCount.textContent = String(friends.length);
+  renderFriendList(friends, incomingRequests, outgoingRequests);
+  renderPendingRequests(incomingRequests, outgoingRequests);
+}
+
+async function hydrateFollowerLikePage(publicUid) {
+  const [friendsResult, followersResult, followingResult] =
+    await Promise.allSettled([
+      api.listFriends(),
+      api.listFollowers(publicUid),
+      api.listFollowing(publicUid),
+    ]);
+
+  setSocialCountsFromResults(friendsResult, followersResult, followingResult);
+
+  const activeResult =
+    pageType === "followers" ? followersResult : followingResult;
+
+  if (activeResult.status !== "fulfilled") {
+    showNotice(els.listError, `Unable to load ${pageTitle.toLowerCase()}.`);
+    els.listCount.textContent = "0";
+    renderListPlaceholder(`No ${pageTitle.toLowerCase()} found.`);
+    return;
+  }
+
+  clearNotice(els.listError);
+  const rows = activeResult.value.followers || [];
+  els.listCount.textContent = String(
+    activeResult.value.pagination?.total ?? rows.length,
+  );
+  renderFollowerLikeList(rows);
+}
+
+function setSocialCountsFromResults(
+  friendsResult,
+  followersResult,
+  followingResult,
+) {
+  const friendsCount =
+    friendsResult.status === "fulfilled"
+      ? (friendsResult.value.friends || []).length
+      : 0;
+
+  const followersRows =
+    followersResult.status === "fulfilled"
+      ? followersResult.value.followers || []
+      : [];
+  const followersCount =
+    followersResult.status === "fulfilled"
+      ? (followersResult.value.pagination?.total ?? followersRows.length)
+      : 0;
+
+  const followingRows =
+    followingResult.status === "fulfilled"
+      ? followingResult.value.followers || []
+      : [];
+  const followingCount =
+    followingResult.status === "fulfilled"
+      ? (followingResult.value.pagination?.total ?? followingRows.length)
+      : 0;
+
+  setSocialCounts(friendsCount, followersCount, followingCount);
+}
+
+function setSocialCounts(friendsCount, followersCount, followingCount) {
+  if (els.friendsCount) {
+    els.friendsCount.textContent = String(friendsCount);
+  }
+
+  if (els.followersCount) {
+    els.followersCount.textContent = String(followersCount);
+  }
+
+  if (els.followingCount) {
+    els.followingCount.textContent = String(followingCount);
+  }
+}
+
+function handlePageError(error) {
+  if (isSessionError(error)) {
+    signOut();
+    return;
+  }
+
+  showNotice(els.globalError, readableError(error));
+  showNotice(els.listError, `Unable to load ${pageTitle.toLowerCase()}.`);
+  els.listCount.textContent = "0";
+  renderListPlaceholder(`No ${pageTitle.toLowerCase()} found.`);
+}
+
+function renderProfile(profile) {
+  const displayName = profile.name || profile.public_uid || "Player";
+  const uid = profile.public_uid || "No public UID";
+  els.playerName.textContent = displayName;
+  els.playerUid.textContent = uid;
+  els.avatar.textContent = getInitials(displayName);
+  if (els.copyUidButton) {
+    els.copyUidButton.disabled = !profile.public_uid;
+  }
+  resetCopyUidButtonIcon();
+  clearCopyUidStatus();
+}
+
+async function handleCopyUid() {
+  const uid = state.player?.public_uid;
+  if (!uid) {
+    showCopyUidStatus("No Public UID available to copy.", true);
+    return;
+  }
+
+  try {
+    await copyText(uid);
+    showCopiedButtonState();
+    showCopyUidStatus("Public UID copied.", false);
+  } catch (_error) {
+    resetCopyUidButtonIcon();
+    showCopyUidStatus("Unable to copy UID on this browser.", true);
+  }
+}
+
+function showCopiedButtonState() {
+  if (!els.copyUidButton) {
+    return;
+  }
+
+  if (state.copyUidButtonTimerId) {
+    window.clearTimeout(state.copyUidButtonTimerId);
+    state.copyUidButtonTimerId = null;
+  }
+
+  els.copyUidButton.innerHTML = `<span aria-hidden="true">${COPY_SUCCESS_ICON}</span>`;
+
+  state.copyUidButtonTimerId = window.setTimeout(() => {
+    state.copyUidButtonTimerId = null;
+    resetCopyUidButtonIcon();
+  }, 2200);
+}
+
+function resetCopyUidButtonIcon() {
+  if (!els.copyUidButton) {
+    return;
+  }
+
+  if (state.copyUidButtonTimerId) {
+    window.clearTimeout(state.copyUidButtonTimerId);
+    state.copyUidButtonTimerId = null;
+  }
+
+  els.copyUidButton.innerHTML = `<span aria-hidden="true">${COPY_ICON}</span>`;
+}
+
+function renderFriendList(
+  friends,
+  incomingRequests = [],
+  outgoingRequests = [],
+) {
+  const friendKeys = buildIdentitySet(friends);
+  const incomingKeys = buildIdentitySet(incomingRequests);
+  const outgoingKeys = buildIdentitySet(outgoingRequests);
+  const merged = mergeSocialRows(friends, incomingRequests, outgoingRequests);
+
+  if (!merged.length) {
+    renderFriendsTablePlaceholder("No friends found.");
+    return;
+  }
+
+  els.list.innerHTML = merged
+    .map((friend) => {
+      const { name, uid, playerId, identityKeys } =
+        normalizeSocialPerson(friend);
+      const hasIncoming = identityKeys.some((key) => incomingKeys.has(key));
+      const hasOutgoing = identityKeys.some((key) => outgoingKeys.has(key));
+      const isFriend = identityKeys.some((key) => friendKeys.has(key));
+      const pendingBadges = [
+        hasIncoming
+          ? `<span class="pill pending-badge pending-badge--incoming">Incoming</span>`
+          : "",
+        hasOutgoing
+          ? `<span class="pill pending-badge pending-badge--outgoing">Outgoing</span>`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("");
+
+      const statusChipClass = friend.online
+        ? "status-chip status-chip--linked"
+        : "status-chip status-chip--not-linked";
+      const statusLabel = friend.online ? "Online" : "Offline";
+      const actionButton =
+        isFriend && playerId
+          ? `<button class="button button--ghost button--small" type="button" data-remove-friend-id="${escapeHtml(String(playerId))}">Remove</button>`
+          : hasIncoming && playerId
+            ? `<button class="button button--small" type="button" data-accept-friend-id="${escapeHtml(String(playerId))}">Accept</button>`
+            : hasOutgoing && playerId
+              ? `<button class="button button--ghost button--small" type="button" data-cancel-friend-id="${escapeHtml(String(playerId))}">Cancel request</button>`
+              : "";
+
+      return `
+      <tr>
+        <td>${escapeHtml(name)}</td>
+        <td class="muted">${escapeHtml(uid)}</td>
+        <td>
+          <div class="list-item__badges">
+            ${pendingBadges}
+            <span class="${statusChipClass}">${escapeHtml(statusLabel)}</span>
+          </div>
+        </td>
+        <td>${actionButton}</td>
+      </tr>
+    `;
+    })
+    .join("");
+}
+
+function renderFriendsTablePlaceholder(text) {
+  if (pageType !== "friends") {
+    renderListPlaceholder(text);
+    return;
+  }
+
+  els.list.innerHTML = `<tr><td colspan="4" class="muted table-empty">${escapeHtml(text)}</td></tr>`;
+}
+
+function handleSocialListClick(event) {
+  const button = event.target.closest(
+    "[data-remove-friend-id], [data-accept-friend-id], [data-cancel-friend-id]",
+  );
+  if (!button) {
+    return;
+  }
+
+  const removePlayerId = button.getAttribute("data-remove-friend-id");
+  if (removePlayerId) {
+    removeFriend(removePlayerId, button);
+    return;
+  }
+
+  const acceptPlayerId = button.getAttribute("data-accept-friend-id");
+  if (acceptPlayerId) {
+    acceptFriendRequest(acceptPlayerId, button);
+    return;
+  }
+
+  const cancelPlayerId = button.getAttribute("data-cancel-friend-id");
+  if (cancelPlayerId) {
+    cancelFriendRequest(cancelPlayerId, button);
+    return;
+  }
+}
+
+async function removeFriend(playerId, button) {
+  clearSocialActionStatus();
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "Removing...";
+
+  try {
+    await api.removeFriend(playerId);
+    showSocialActionStatus("Friend removed.", false);
+    await hydrateFriendsPage(state.player?.public_uid);
+  } catch (error) {
+    if (isSessionError(error)) {
+      signOut();
+      return;
+    }
+
+    showSocialActionStatus(readableError(error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
+async function acceptFriendRequest(playerId, button) {
+  clearSocialActionStatus();
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "Accepting...";
+
+  try {
+    await api.acceptFriendRequest(playerId);
+    showSocialActionStatus("Friend request accepted.", false);
+    await hydrateFriendsPage(state.player?.public_uid);
+  } catch (error) {
+    if (isSessionError(error)) {
+      signOut();
+      return;
+    }
+
+    showSocialActionStatus(readableError(error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
+async function cancelFriendRequest(playerId, button) {
+  clearSocialActionStatus();
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "Canceling...";
+
+  try {
+    await api.cancelFriendRequest(playerId);
+    showSocialActionStatus("Friend request canceled.", false);
+    await hydrateFriendsPage(state.player?.public_uid);
+  } catch (error) {
+    if (isSessionError(error)) {
+      signOut();
+      return;
+    }
+
+    showSocialActionStatus(readableError(error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
+function extractSocialRows(payload) {
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  if (Array.isArray(payload.info)) {
+    return payload.info;
+  }
+
+  if (Array.isArray(payload.friends)) {
+    return payload.friends;
+  }
+
+  if (Array.isArray(payload.requests)) {
+    return payload.requests;
+  }
+
+  if (Array.isArray(payload.players)) {
+    return payload.players;
+  }
+
+  if (Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  const firstArray = Object.values(payload).find(Array.isArray);
+  if (Array.isArray(firstArray)) {
+    return firstArray;
+  }
+
+  return [];
+}
+
+function mergeSocialRows(friends, incomingRequests, outgoingRequests) {
+  const merged = [];
+  const seen = new Set();
+  const allRows = [...incomingRequests, ...outgoingRequests, ...friends];
+
+  for (const row of allRows) {
+    const { identityKeys } = normalizeSocialPerson(row);
+    const key = identityKeys[0] || "";
+    if (!key || seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    merged.push(row);
+  }
+
+  return merged;
+}
+
+function buildIdentitySet(rows) {
+  const set = new Set();
+  rows.forEach((row) => {
+    const { identityKeys } = normalizeSocialPerson(row);
+    identityKeys.forEach((key) => set.add(key));
+  });
+  return set;
+}
+
+function normalizeSocialPerson(row) {
+  const source = row?.player || row?.requester || row?.target || row;
+  const name =
+    source?.name ||
+    source?.player_name ||
+    source?.playerName ||
+    row?.player_name ||
+    "Unnamed Player";
+  const uid =
+    source?.public_uid ||
+    source?.PublicUID ||
+    source?.player_public_uid ||
+    row?.public_uid ||
+    row?.PublicUID ||
+    row?.player_public_uid ||
+    "No UID";
+  const playerId =
+    source?.player_id ||
+    source?.id ||
+    source?.playerId ||
+    row?.player_id ||
+    row?.id ||
+    row?.playerId ||
+    row?.requester_player_id ||
+    row?.target_player_id;
+
+  const identityKeys = [];
+  if (uid && uid !== "No UID") {
+    identityKeys.push(`uid:${String(uid)}`);
+  }
+  if (playerId) {
+    identityKeys.push(`id:${String(playerId)}`);
+  }
+
+  return { name, uid, playerId, identityKeys };
+}
+
+function renderPendingRequests(incomingRequests, outgoingRequests) {
+  if (
+    !els.pendingRequestsSection ||
+    !els.incomingList ||
+    !els.outgoingList ||
+    !els.incomingCount ||
+    !els.outgoingCount
+  ) {
+    return;
+  }
+
+  const hasAny = incomingRequests.length > 0 || outgoingRequests.length > 0;
+  els.pendingRequestsSection.classList.toggle("hidden", !hasAny);
+  els.incomingCount.textContent = String(incomingRequests.length);
+  els.outgoingCount.textContent = String(outgoingRequests.length);
+
+  renderPendingList(
+    els.incomingList,
+    incomingRequests,
+    "No incoming requests.",
+  );
+  renderPendingList(
+    els.outgoingList,
+    outgoingRequests,
+    "No outgoing requests.",
+  );
+}
+
+function renderPendingList(targetElement, rows, emptyText) {
+  if (!rows.length) {
+    targetElement.innerHTML = `<li class="muted">${escapeHtml(emptyText)}</li>`;
+    return;
+  }
+
+  targetElement.innerHTML = rows
+    .map((row) => {
+      const { name, uid } = normalizeSocialPerson(row);
+      return `
+      <li class="list-item">
+        <div>
+          <p class="list-item__title">${escapeHtml(name)}</p>
+          <p class="list-item__meta">${escapeHtml(uid)}</p>
+        </div>
+      </li>
+    `;
+    })
+    .join("");
+}
+
+function renderFollowerLikeList(rows) {
+  if (!rows.length) {
+    renderListPlaceholder(`No ${pageTitle.toLowerCase()} found.`);
+    return;
+  }
+
+  els.list.innerHTML = rows
+    .map((row) => {
+      const uid = row.PublicUID || row.public_uid || "No UID";
+      const name = row.player_name || "Unnamed Player";
+
+      return `
+      <tr>
+        <td>${escapeHtml(name)}</td>
+        <td class="muted">${escapeHtml(uid)}</td>
+      </tr>
+    `;
+    })
+    .join("");
+}
+
+function renderListPlaceholder(text) {
+  if (pageType === "friends") {
+    els.list.innerHTML = `<tr><td colspan="4" class="muted table-empty">${escapeHtml(text)}</td></tr>`;
+    return;
+  }
+
+  if (pageType === "followers" || pageType === "following") {
+    els.list.innerHTML = `<tr><td colspan="2" class="muted table-empty">${escapeHtml(text)}</td></tr>`;
+    return;
+  }
+
+  els.list.innerHTML = `<li class="muted">${escapeHtml(text)}</li>`;
+}
+
+function openFriendRequestModal() {
+  clearSocialActionStatus();
+  clearFriendRequestStatus();
+
+  if (!els.friendRequestModal || !els.friendRequestPublicUidInput) {
+    return;
+  }
+
+  els.friendRequestPublicUidInput.value = "";
+  els.friendRequestModal.classList.remove("hidden");
+  els.friendRequestPublicUidInput.focus();
+}
+
+function closeFriendRequestModal() {
+  if (!els.friendRequestModal) {
+    return;
+  }
+
+  els.friendRequestModal.classList.add("hidden");
+  clearFriendRequestStatus();
+}
+
+async function submitFriendRequest(event) {
+  event.preventDefault();
+  clearSocialActionStatus();
+  clearFriendRequestStatus();
+
+  if (!els.friendRequestPublicUidInput) {
+    return;
+  }
+
+  const targetPublicUid = els.friendRequestPublicUidInput.value.trim();
+
+  if (!targetPublicUid) {
+    showFriendRequestStatus("Please enter a Public UID.", true);
+    return;
+  }
+
+  if (targetPublicUid === state.player?.public_uid) {
+    showFriendRequestStatus(
+      "You cannot send a friend request to yourself.",
+      true,
+    );
+    return;
+  }
+
+  if (!els.friendRequestSubmitButton) {
+    return;
+  }
+
+  const originalText = els.friendRequestSubmitButton.textContent;
+  els.friendRequestSubmitButton.disabled = true;
+  els.friendRequestSubmitButton.textContent = "Sending...";
+
+  try {
+    const lookup = await api.lookupPlayerInfoByPublicUid(targetPublicUid);
+    const targetPlayerId = extractPlayerIdFromInfoLookup(lookup);
+
+    if (!targetPlayerId) {
+      throw new Error("No player was found for that Public UID.");
+    }
+
+    await api.sendFriendRequest(targetPlayerId);
+    closeFriendRequestModal();
+    showSocialActionStatus("Friend request sent.", false);
+  } catch (error) {
+    if (isSessionError(error)) {
+      signOut();
+      return;
+    }
+
+    showFriendRequestStatus(readableError(error), true);
+  } finally {
+    els.friendRequestSubmitButton.disabled = false;
+    els.friendRequestSubmitButton.textContent = originalText;
+  }
+}
+
+function extractPlayerIdFromInfoLookup(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  if (Array.isArray(payload.info) && payload.info.length) {
+    const first = payload.info[0];
+    if (typeof first?.id === "string" && first.id) {
+      return first.id;
+    }
+  }
+
+  return null;
+}
+
+function showFriendRequestStatus(text, isError) {
+  if (!els.friendRequestStatus) {
+    return;
+  }
+
+  els.friendRequestStatus.textContent = text;
+  els.friendRequestStatus.classList.remove("hidden");
+  els.friendRequestStatus.classList.toggle("notice--error", isError);
+  els.friendRequestStatus.classList.toggle("notice--success", !isError);
+}
+
+function clearFriendRequestStatus() {
+  if (!els.friendRequestStatus) {
+    return;
+  }
+
+  els.friendRequestStatus.textContent = "";
+  els.friendRequestStatus.classList.add("hidden");
+  els.friendRequestStatus.classList.remove("notice--error", "notice--success");
+}
+
+function showSocialActionStatus(text, isError) {
+  if (!els.socialActionStatus) {
+    return;
+  }
+
+  els.socialActionStatus.textContent = text;
+  els.socialActionStatus.classList.remove("hidden");
+  els.socialActionStatus.classList.toggle("notice--error", isError);
+  els.socialActionStatus.classList.toggle("notice--success", !isError);
+}
+
+function clearSocialActionStatus() {
+  if (!els.socialActionStatus) {
+    return;
+  }
+
+  els.socialActionStatus.textContent = "";
+  els.socialActionStatus.classList.add("hidden");
+  els.socialActionStatus.classList.remove("notice--error", "notice--success");
+}
+
+async function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.setAttribute("readonly", "");
+  input.style.position = "absolute";
+  input.style.left = "-9999px";
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand("copy");
+  document.body.removeChild(input);
+}
+
+function showCopyUidStatus(text, isError) {
+  if (!els.copyUidStatus) {
+    return;
+  }
+
+  if (state.copyUidStatusTimerId) {
+    window.clearTimeout(state.copyUidStatusTimerId);
+    state.copyUidStatusTimerId = null;
+  }
+
+  els.copyUidStatus.textContent = text;
+  els.copyUidStatus.classList.remove("hidden");
+  els.copyUidStatus.classList.toggle("notice--error", isError);
+  els.copyUidStatus.classList.toggle("notice--success", !isError);
+
+  state.copyUidStatusTimerId = window.setTimeout(
+    clearCopyUidStatus,
+    isError ? 3200 : 2200,
+  );
+}
+
+function clearCopyUidStatus() {
+  if (!els.copyUidStatus) {
+    return;
+  }
+
+  if (state.copyUidStatusTimerId) {
+    window.clearTimeout(state.copyUidStatusTimerId);
+    state.copyUidStatusTimerId = null;
+  }
+
+  els.copyUidStatus.textContent = "";
+  els.copyUidStatus.classList.add("hidden");
+  els.copyUidStatus.classList.remove("notice--error", "notice--success");
+}
+
+function signOut() {
+  state.sessionToken = null;
+  state.player = null;
+  clearSessionToken();
+  window.location.href = "../login.html";
+}
+
+init();
