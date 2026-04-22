@@ -75,6 +75,8 @@ You can also start from ready-made examples in `styles/templates/`:
 - `styles/templates/template-sunrise-citrus.css`
 - `styles/templates/template-darcular.css`
 - `styles/templates/template-carbon-electric.css`
+- `styles/templates/template-bubble-gum.css`
+- `styles/templates/template-ncsa-mosaic-1993.css`
 
 Copy any template contents into `styles/custom.css`, then tweak colors, spacing, radii, and fonts as needed.
 

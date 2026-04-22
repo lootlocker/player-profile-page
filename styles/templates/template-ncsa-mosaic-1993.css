@@ -1,0 +1,756 @@
+/* ----------------------------------------------------------
+   System-font stack only: "Times New Roman" for serif body,
+   "Courier New" for monospaced URL/data fields. This mirrors
+   real NCSA Mosaic on Mac/Windows, which used whatever Times
+   and Courier the OS already had installed (no web fonts yet).
+
+   The real 1993 aesthetic comes from the SVG alpha-threshold
+   filter declared inline below, which crunches antialiased
+   glyph edges into hard pixelated ones -- exactly like a CRT
+   rendering an 8-bit-per-glyph bitmap font.
+   ---------------------------------------------------------- */
+
+/*
+  ============================================================
+   NCSA MOSAIC 1993 - PURIST EDITION
+   "This document was produced using the World Wide Web."
+  ============================================================
+
+  A custom theme that takes the LootLocker profile page back
+  to the CERN / NCSA era of the web (roughly 1991-1993).
+
+  Design rules (strict):
+    - No rounded corners anywhere. Ever.
+    - No gradients, no box-shadows (except 3D bevels), no blur.
+    - No animations or transitions, except <blink> (yes).
+    - Times New Roman for prose, Courier for data/code.
+    - Page background is #c0c0c0 - the Mosaic/Windows default.
+    - Links: #0000ee unvisited, #551a8b visited, red on :active.
+    - Buttons are beveled 3D widgets, not pills.
+    - Inputs are inset 3D sunken boxes, white background.
+    - Tables get 1px borders and zebra stripes.
+    - Dark mode exists but is austere (Mosaic never had one).
+
+  Bonus authenticity (add these classes/elements in HTML if
+  you want to go further - they work out of the box):
+    <div class="mosaic-header">...</div>   - NCSA-style title bar
+    <div class="mosaic-footer">...</div>   - "Last modified" footer
+    <blink>new!</blink>                    - the real thing
+    <marquee>...</marquee>                 - scrolling status text
+    <img class="under-construction" ...>   - classic GIF spot
+
+  Section guide:
+    0) Reset the base theme (defeat all rounded/shadow/gradient)
+    1) Theme tokens (light + dark)
+    2) Page defaults - Times serif, gray bg, tight leading
+    3) CSS-only dithered tiled background (pure 1993)
+    4) Headings + horizontal rules (3D groove)
+    5) Links: blue, purple, red-on-click
+    6) Beveled 3D buttons + tab widgets
+    7) Inset form controls
+    8) Flat cards, tables, zebra rows
+    9) Avatar as a framed <img> placeholder
+   10) Status chips and notices as bracketed plain text
+   11) Authentic add-ons: header bar, footer, blink, marquee,
+       "Under Construction" ribbon, and numbered [n] links
+*/
+
+/* ---------------------------------------------------------- */
+/* 0) RESET ................................................. */
+/* ---------------------------------------------------------- */
+
+/* Nuke everything decorative from the base stylesheet so we
+   don't end up with ghost gradients or shadows peeking through. */
+
+.shell::before,
+.shell::after,
+body::before,
+body::after {
+  content: none !important;
+  background: none !important;
+  display: none !important;
+}
+
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+  background-image: none !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  /* NOTE: we deliberately do NOT reset `filter` here, because
+     the alpha-threshold filter applied later is what gives
+     text its authentic 1993 aliased-CRT rendering. */
+}
+
+/* We re-enable animation only on the few elements we _want_
+   to animate (blink, marquee) further down. */
+
+/* ---------------------------------------------------------- */
+/* 1) THEME TOKENS .......................................... */
+/* ---------------------------------------------------------- */
+
+:root {
+  /* Looking at the Mosaic reference screenshot: the document
+     body is plain white (the actual HTML page), the gray is
+     the OS window chrome around it. So: white page, gray UI
+     chrome (cards/headers), white input backgrounds. */
+  --bg: #ffffff;
+  --card: #c0c0c0;
+  --card-muted: #dcdcdc;
+  --surface: #ffffff;
+  --input-bg: #ffffff;
+
+  --text: #000000;
+  --text-muted: #404040;
+  --border: #808080;
+
+  /* Classic HTML link palette */
+  --accent: #0000ee;
+  --accent-soft: #d4d0c8;
+  --visited-link: #551a8b;
+  --active-link: #ff0000;
+
+  --stat-hover-bg: #b8b8b8;
+
+  --danger: #a00000;
+  --danger-soft: #e8d0d0;
+  --notice-error-border: #800000;
+
+  --provider-icon-text: #ffffff;
+  --provider-icon-bg: #000080;   /* navy - classic MS-DOS */
+
+  --status-linked-border: #008000;
+  --status-linked-bg: #d8e8d0;
+  --status-linked-text: #004000;
+  --pending-incoming-border: #008000;
+  --pending-incoming-bg: #d8e8d0;
+  --pending-incoming-text: #004000;
+  --pending-outgoing-border: #808000;
+  --pending-outgoing-bg: #e8e8d0;
+  --pending-outgoing-text: #404000;
+
+  --button-text: #000000;
+
+  --toast-success-bg: #d8e8d0;
+  --toast-success-border: #008000;
+  --toast-success-text: #004000;
+
+  --radius: 0;
+  --radius-sm: 0;
+  --space-3: 0.5rem;
+  --space-4: 0.75rem;
+  --space-5: 1rem;
+  --shadow: none;
+
+  /* Bevel colors - the four shades you need for 3D widgets */
+  --bevel-light: #ffffff;     /* top+left highlight */
+  --bevel-face:  #c0c0c0;     /* the button face */
+  --bevel-dark:  #808080;     /* bottom+right shadow */
+  --bevel-darker:#404040;     /* outer 1px frame */
+
+  /* Header bar palette - NeXTSTEP titlebar black */
+  --titlebar-bg: #000080;
+  --titlebar-fg: #ffffff;
+}
+
+:root.theme-dark {
+  --bg: #2a2a2a;
+  --card: #2a2a2a;
+  --card-muted: #232323;
+  --surface: #2a2a2a;
+  --input-bg: #0a0a0a;
+
+  --text: #e8e8e8;
+  --text-muted: #b0b0b0;
+  --border: #555555;
+
+  --accent: #7a9cff;
+  --accent-soft: #1a1a1a;
+  --visited-link: #c080ff;
+  --active-link: #ff6060;
+
+  --stat-hover-bg: #353535;
+
+  --danger: #ff7070;
+  --danger-soft: #4a2020;
+  --notice-error-border: #804040;
+
+  --provider-icon-bg: #4050a0;
+
+  --status-linked-border: #60a060;
+  --status-linked-bg: #2a3a2a;
+  --status-linked-text: #c0e0c0;
+  --pending-incoming-border: #60a060;
+  --pending-incoming-bg: #2a3a2a;
+  --pending-incoming-text: #c0e0c0;
+  --pending-outgoing-border: #a0a060;
+  --pending-outgoing-bg: #3a3a2a;
+  --pending-outgoing-text: #e0e0c0;
+
+  --button-text: #e8e8e8;
+
+  --toast-success-bg: #2a3a2a;
+  --toast-success-border: #60a060;
+  --toast-success-text: #c0e0c0;
+
+  --bevel-light: #555555;
+  --bevel-face:  #2a2a2a;
+  --bevel-dark:  #111111;
+  --bevel-darker:#000000;
+
+  --titlebar-bg: #000040;
+  --titlebar-fg: #c8c8ff;
+}
+
+/* ---------------------------------------------------------- */
+/* 2) PAGE DEFAULTS ......................................... */
+/* ---------------------------------------------------------- */
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+
+  /* Mosaic on Mac/Windows rendered body text in a proportional
+     serif (Times / New Century Schoolbook). We match that, then
+     use tricks below to fake the chunky low-DPI rendering. */
+  font-family: "Times New Roman", "New Century Schoolbook",
+               Times, serif;
+  font-size: 17px;
+  line-height: 1.4;
+  margin: 0;
+
+  /* Turn off every form of subpixel/grayscale antialiasing the
+     browser offers. On low-DPI displays this alone produces
+     hard-edged glyphs. On modern high-DPI (retina) displays
+     browsers ignore these hints, so we layer the SVG threshold
+     filter below on top. */
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: auto;
+  font-smooth: never;
+  text-rendering: optimizeSpeed;
+}
+
+/* ----------------------------------------------------------
+   Apply the "crunch antialiasing" SVG filter to all text-bearing
+   elements. The filter:
+     1. <feColorMatrix> pushes the alpha channel up hard
+     2. <feComponentTransfer> with a step function collapses
+        mid-grey edge pixels to either fully on or fully off
+   Effect: smooth glyph edges become jagged 1-bit-style pixels,
+   exactly like a VGA CRT rendering a bitmap font.
+   ---------------------------------------------------------- */
+
+/* Apply the alpha-threshold SVG filter ONLY to text-bearing
+   elements, not to images or the avatar. We hit the usual
+   suspects: headings, paragraphs, labels, links, buttons,
+   form controls, table cells. */
+h1, h2, h3, h4, h5, h6,
+p, span, a, label,
+li, dt, dd,
+th, td,
+button, input, select, textarea,
+.button, .page-tab-link,
+.stat__label, .platform-cell,
+.notice, .status-chip, .pending-badge,
+#playerName, #playerUid,
+#settingsPublicUid, #settingsJoinedAt,
+#settingsLastSeenAt, #settingsEmail {
+  filter: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='a'><feComponentTransfer><feFuncA type='discrete' tableValues='0 0 0 1 1 1 1 1 1 1'/></feComponentTransfer></filter></svg>#a") !important;
+}
+
+/* Belt-and-braces: explicitly un-filter images. */
+img,
+.avatar img,
+.profile-logo,
+.site-logo,
+.auth-logo {
+  filter: none !important;
+}
+
+/* Tighten the shell back to a reasonable document width.
+   Early web pages didn't fluidly reflow to 1920px. */
+.shell {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ---------------------------------------------------------- */
+/* 3) PAGE BACKGROUND ....................................... */
+/* ---------------------------------------------------------- */
+
+/* Mosaic rendered HTML documents on a plain white canvas
+   (the gray you remember was the Windows/Motif chrome around
+   the document, not the document itself). Keep it clean. */
+html {
+  background-color: var(--bg);
+}
+
+/* ---------------------------------------------------------- */
+/* 4) HEADINGS + HR ......................................... */
+/* ---------------------------------------------------------- */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0.5em 0 0.3em;
+}
+
+h1 { font-size: 2.1rem;  }
+h2 { font-size: 1.65rem; }
+h3 { font-size: 1.3rem;  }
+
+/* Native <hr> and any section-divider class get the classic
+   chiseled-groove look. */
+hr,
+.page-tabs-divider,
+.settings-divider {
+  border: none;
+  border-top: 2px groove var(--border);
+  height: 0;
+  margin: 12px 0;
+}
+
+.section-title-row,
+.section-title-row--start {
+  border-bottom: 2px groove var(--border);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+/* Monospace for anything code/id/data-shaped */
+code, pre, kbd, samp, tt,
+.muted,
+.profile-uid-row .muted,
+#playerUid,
+#settingsPublicUid,
+#settingsJoinedAt,
+#settingsLastSeenAt,
+#settingsEmail {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 15px;
+}
+
+/* ---------------------------------------------------------- */
+/* 5) LINKS ................................................. */
+/* ---------------------------------------------------------- */
+
+a,
+a:link {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+a:visited {
+  color: var(--visited-link);
+}
+
+a:hover,
+a:focus {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+a:active {
+  color: var(--active-link);
+}
+
+/* Optional: line-mode browser style [1] [2] numbered links.
+   Apply class "mosaic-numbered" to any container of <a>s. */
+.mosaic-numbered {
+  counter-reset: link;
+}
+.mosaic-numbered a::before {
+  counter-increment: link;
+  content: "[" counter(link) "] ";
+  color: var(--text);
+  text-decoration: none;
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* ---------------------------------------------------------- */
+/* 6) BUTTONS + TABS ........................................ */
+/* ---------------------------------------------------------- */
+
+/* Authentic beveled Win3.1/Mosaic button. Uses real border
+   colors rather than box-shadow so it survives the global
+   shadow reset. */
+.button {
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--button-text);
+  background: var(--bevel-face);
+  padding: 3px 12px;
+  cursor: pointer;
+  /* Outer 1px dark frame */
+  border: 1px solid var(--bevel-darker);
+  /* Inner bevel via border colors on a second layer (outline) */
+  outline: 1px solid var(--bevel-light);
+  outline-offset: -2px;
+  /* Top/left highlight, bottom/right shadow */
+  border-top-color: var(--bevel-light);
+  border-left-color: var(--bevel-light);
+  border-right-color: var(--bevel-dark);
+  border-bottom-color: var(--bevel-dark);
+}
+
+.button:hover {
+  background: var(--bevel-face);
+}
+
+.button:active {
+  /* Press-in: flip bevel + dotted focus rectangle */
+  border-top-color: var(--bevel-dark);
+  border-left-color: var(--bevel-dark);
+  border-right-color: var(--bevel-light);
+  border-bottom-color: var(--bevel-light);
+  outline: 1px dotted var(--text);
+  outline-offset: -4px;
+  padding: 4px 11px 2px 13px; /* 1px nudge, like a real press */
+}
+
+.button:focus-visible {
+  outline: 1px dotted var(--text);
+  outline-offset: -4px;
+}
+
+.button--ghost {
+  background: var(--bevel-face);
+  color: var(--text);
+}
+
+/* Tabs as plain underlined hyperlinks, active one bolded.
+   This is how navigation actually looked in 1993. */
+.page-tab-link {
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--accent);
+  background: transparent;
+  border: none !important;
+  padding: 2px 4px;
+  margin-right: 10px;
+  text-decoration: underline;
+}
+
+.page-tab-link:visited {
+  color: var(--visited-link);
+}
+
+.page-tab-link.is-active {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------- */
+/* 7) FORM CONTROLS ......................................... */
+/* ---------------------------------------------------------- */
+
+input,
+select,
+textarea {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 16px;
+  background: var(--input-bg);
+  color: var(--text);
+  padding: 2px 4px;
+  /* Inset (sunken) bevel - the opposite of buttons */
+  border: 1px solid var(--bevel-dark);
+  border-top-color: var(--bevel-darker);
+  border-left-color: var(--bevel-darker);
+  border-right-color: var(--bevel-light);
+  border-bottom-color: var(--bevel-light);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 1px dotted var(--text);
+  outline-offset: 1px;
+}
+
+label {
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  font-weight: 400;
+}
+
+/* ---------------------------------------------------------- */
+/* 8) CARDS, TABLES, ROWS ................................... */
+/* ---------------------------------------------------------- */
+
+.auth-card,
+.card {
+  background: var(--card);
+  border: 2px groove var(--border);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.auth-card {
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* The whole settings block becomes one bordered table */
+.settings-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.settings-row,
+.platform-row {
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: transparent;
+  padding: 4px 8px;
+  align-items: baseline;
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+}
+
+.settings-row:last-child,
+.platform-row:last-child {
+  border-bottom: none !important;
+}
+
+/* Zebra-striping, classic HTML table style */
+.settings-row:nth-child(even),
+.platform-row:nth-child(even) {
+  background: color-mix(in srgb, var(--card) 70%, #ffffff);
+}
+
+:root.theme-dark .settings-row:nth-child(even),
+:root.theme-dark .platform-row:nth-child(even) {
+  background: color-mix(in srgb, var(--card) 70%, #000000);
+}
+
+.settings-row .stat__label,
+.platform-cell--header {
+  font-weight: 700;
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  color: var(--text);
+}
+
+.settings-row strong,
+.platform-cell strong {
+  font-weight: 400;
+  font-family: "Courier New", Courier, monospace;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------- */
+/* 9) AVATAR + LOGO ......................................... */
+/* ---------------------------------------------------------- */
+
+/* Make the avatar look like an <img> in a picture frame.
+   Sunken bevel = "this is an image placeholder". */
+.avatar {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif !important;
+  font-weight: 700;
+  border: 2px solid var(--bevel-dark) !important;
+  border-top-color: var(--bevel-darker) !important;
+  border-left-color: var(--bevel-darker) !important;
+  border-right-color: var(--bevel-light) !important;
+  border-bottom-color: var(--bevel-light) !important;
+}
+
+.profile-head {
+  align-items: flex-start;
+}
+
+#playerName {
+  padding-top: 0;
+  line-height: 1.2;
+}
+
+/* ---------------------------------------------------------- */
+/* 10) CHIPS / NOTICES ...................................... */
+/* ---------------------------------------------------------- */
+
+.status-chip,
+.pending-badge {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  background: var(--card-muted);
+  color: var(--text);
+}
+
+.status-chip--linked,
+.pending-badge--incoming {
+  border-color: var(--status-linked-border);
+  background: var(--status-linked-bg);
+  color: var(--status-linked-text);
+}
+
+.pending-badge--outgoing {
+  border-color: var(--pending-outgoing-border);
+  background: var(--pending-outgoing-bg);
+  color: var(--pending-outgoing-text);
+}
+
+/* Social totals: plain "[N] friends" style, not pills */
+.social-total-pill {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 6px 0 0;
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+}
+
+.social-total-pill strong,
+.social-total-pill .value {
+  font-weight: 700;
+  text-decoration: underline;
+  color: var(--accent);
+  font-family: "Courier New", Courier, monospace;
+}
+
+.notice {
+  border: 1px solid var(--border);
+  background: var(--card-muted);
+  padding: 6px 8px;
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+}
+
+.notice--error {
+  border-color: var(--notice-error-border);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.notice--success {
+  border-color: var(--toast-success-border);
+  background: var(--toast-success-bg);
+  color: var(--toast-success-text);
+}
+
+/* ---------------------------------------------------------- */
+/* 11) AUTHENTIC ADD-ONS .................................... */
+/* ---------------------------------------------------------- */
+
+/* A NeXTSTEP/Mosaic-style title bar. Add to the top of a
+   page with:
+     <div class="mosaic-header">LootLocker - Player Profile</div>
+*/
+.mosaic-header {
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--titlebar-fg);
+  background: var(--titlebar-bg);
+  padding: 3px 8px;
+  border: 1px solid var(--bevel-darker);
+  border-top-color: var(--bevel-light);
+  border-left-color: var(--bevel-light);
+  margin-bottom: 12px;
+}
+
+/* Generic "Last modified" footer. Add:
+     <div class="mosaic-footer">
+       Last modified: Tuesday, 09-Nov-93 14:23:47 GMT
+     </div>
+*/
+.mosaic-footer {
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  font-size: 14px;
+  color: var(--text-muted);
+  border-top: 2px groove var(--border);
+  margin-top: 24px;
+  padding-top: 8px;
+}
+
+.mosaic-footer::before {
+  content: "";
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Re-enable the one, true text effect of the early web. */
+blink,
+.blink {
+  animation: mosaic-blink 1s steps(2, start) infinite !important;
+}
+
+@keyframes mosaic-blink {
+  to { visibility: hidden; }
+}
+
+/* A <marquee> polyfill via CSS for browsers that don't
+   honor the real tag anymore. Use class="mosaic-marquee" on a
+   block with a single inline-block child. */
+.mosaic-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  border: 1px solid var(--bevel-dark);
+  border-top-color: var(--bevel-darker);
+  border-left-color: var(--bevel-darker);
+  border-right-color: var(--bevel-light);
+  border-bottom-color: var(--bevel-light);
+  background: var(--input-bg);
+  padding: 2px 0;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 15px;
+}
+
+.mosaic-marquee > * {
+  display: inline-block;
+  padding-left: 100%;
+  animation: mosaic-marquee-scroll 18s linear infinite !important;
+}
+
+@keyframes mosaic-marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+/* Classic "Under Construction" animated-GIF slot. Drop an
+   <img> in with class="under-construction" or just use:
+     <span class="under-construction">Under Construction</span>
+*/
+.under-construction {
+  display: inline-block;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #000000;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #ffcc00 0 10px,
+      #000000 10px 20px
+    );
+  padding: 2px 6px;
+  border: 1px solid #000000;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.under-construction::before { content: "\26A0  "; } /* warning sign */
+.under-construction::after  { content: "  \26A0"; }
+
+/* Force any <img> that _is_ missing to show the classic broken
+   placeholder rather than nothing. */
+img {
+  font-family: "Times New Roman", "New Century Schoolbook", Times, serif;
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------- */
+/*  End of transmission. */
+/* ---------------------------------------------------------- */
