@@ -92,6 +92,7 @@ function bindEvents() {
   els.playerNameEditButton.addEventListener("click", handlePlayerNameEdit);
   els.playerNameForm.addEventListener("submit", handlePlayerNameSave);
   els.playerNameCancelButton.addEventListener("click", handlePlayerNameCancel);
+  els.playerNameInput.addEventListener("keydown", handlePlayerNameInputKeydown);
   THEME_QUERY.addEventListener("change", handleThemeChange);
 }
 
@@ -220,7 +221,8 @@ function handlePageError(error) {
 }
 
 function renderProfile(profile, playerName) {
-  const displayName = playerName || profile.name || profile.public_uid || "Player";
+  const displayName =
+    playerName || profile.name || profile.public_uid || "Player";
   const uid = profile.public_uid || "No public UID";
 
   els.playerName.textContent = displayName;
@@ -337,6 +339,7 @@ function renderPlayerName(name) {
 function handlePlayerNameEdit() {
   els.playerNameInput.value = state.playerName || "";
   els.playerNameEditRow.classList.remove("hidden");
+  els.settingsPlayerName.classList.add("hidden");
   els.playerNameEditButton.classList.add("hidden");
   clearPlayerNameStatus();
   els.playerNameInput.focus();
@@ -344,8 +347,18 @@ function handlePlayerNameEdit() {
 
 function handlePlayerNameCancel() {
   els.playerNameEditRow.classList.add("hidden");
+  els.settingsPlayerName.classList.remove("hidden");
   els.playerNameEditButton.classList.remove("hidden");
   clearPlayerNameStatus();
+}
+
+function handlePlayerNameInputKeydown(event) {
+  if (event.key !== "Escape") {
+    return;
+  }
+
+  event.preventDefault();
+  handlePlayerNameCancel();
 }
 
 async function handlePlayerNameSave(event) {
@@ -356,9 +369,7 @@ async function handlePlayerNameSave(event) {
     return;
   }
 
-  const originalText = els.playerNameSaveButton.textContent;
-  els.playerNameSaveButton.disabled = true;
-  els.playerNameSaveButton.textContent = "Saving...";
+  setPlayerNameEditBusy(true);
 
   try {
     const result = await api.setPlayerName(name);
@@ -369,9 +380,14 @@ async function handlePlayerNameSave(event) {
   } catch (error) {
     showPlayerNameStatus(readableError(error), true);
   } finally {
-    els.playerNameSaveButton.disabled = false;
-    els.playerNameSaveButton.textContent = originalText;
+    setPlayerNameEditBusy(false);
   }
+}
+
+function setPlayerNameEditBusy(isBusy) {
+  els.playerNameSaveButton.disabled = isBusy;
+  els.playerNameCancelButton.disabled = isBusy;
+  els.playerNameInput.disabled = isBusy;
 }
 
 function showPlayerNameStatus(text, isError) {

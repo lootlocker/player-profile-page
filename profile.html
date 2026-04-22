@@ -150,19 +150,66 @@
                   <span class="stat__label">Player Name</span>
                   <div class="player-name-display">
                     <strong id="settingsPlayerName">-</strong>
-                    <button id="playerNameEditButton" class="button button--ghost button--small" type="button">Edit</button>
+                    <button
+                      id="playerNameEditButton"
+                      class="icon-button"
+                      type="button"
+                      aria-label="Edit player name"
+                      title="Edit player name"
+                    >
+                      <span
+                        class="ui-icon ui-icon--pencil"
+                        aria-hidden="true"
+                      ></span>
+                    </button>
+                    <div
+                      id="playerNameEditRow"
+                      class="player-name-inline hidden"
+                    >
+                      <form id="playerNameForm" class="player-name-form">
+                        <input
+                          id="playerNameInput"
+                          type="text"
+                          placeholder="Enter player name"
+                          maxlength="128"
+                          autocomplete="off"
+                        />
+                        <div class="player-name-form__actions">
+                          <button
+                            id="playerNameSaveButton"
+                            class="icon-button icon-button--confirm"
+                            type="submit"
+                            aria-label="Save player name"
+                            title="Save player name"
+                          >
+                            <span
+                              class="ui-icon ui-icon--check"
+                              aria-hidden="true"
+                            ></span>
+                          </button>
+                          <button
+                            id="playerNameCancelButton"
+                            class="icon-button icon-button--cancel"
+                            type="button"
+                            aria-label="Cancel editing player name"
+                            title="Cancel editing player name"
+                          >
+                            <span
+                              class="ui-icon ui-icon--x"
+                              aria-hidden="true"
+                            ></span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
                   </div>
                 </div>
-                <div id="playerNameEditRow" class="settings-row hidden">
-                  <form id="playerNameForm" class="player-name-form">
-                    <input id="playerNameInput" type="text" placeholder="Enter player name" maxlength="128" autocomplete="off" />
-                    <div class="settings-form__actions">
-                      <button id="playerNameSaveButton" class="button button--small" type="submit">Save</button>
-                      <button id="playerNameCancelButton" class="button button--ghost button--small" type="button">Cancel</button>
-                    </div>
-                  </form>
-                  <p id="playerNameStatus" class="notice hidden" role="status" aria-live="polite"></p>
-                </div>
+                <p
+                  id="playerNameStatus"
+                  class="notice hidden"
+                  role="status"
+                  aria-live="polite"
+                ></p>
                 <div class="settings-row">
                   <span class="stat__label">Public UID</span>
                   <strong id="settingsPublicUid">-</strong>
