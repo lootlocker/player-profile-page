@@ -30,6 +30,7 @@ const LOGO_BY_THEME = {
 const state = {
   sessionToken: getSessionToken(),
   player: null,
+  playerName: null,
   copyUidStatusTimerId: null,
   copyUidButtonTimerId: null,
 };
@@ -54,6 +55,14 @@ const els = {
   passwordResetStatus: document.getElementById("passwordResetStatus"),
   brandLogo: document.getElementById("brandLogo"),
   themeToggleButton: document.getElementById("themeToggleButton"),
+  settingsPlayerName: document.getElementById("settingsPlayerName"),
+  playerNameEditButton: document.getElementById("playerNameEditButton"),
+  playerNameEditRow: document.getElementById("playerNameEditRow"),
+  playerNameForm: document.getElementById("playerNameForm"),
+  playerNameInput: document.getElementById("playerNameInput"),
+  playerNameSaveButton: document.getElementById("playerNameSaveButton"),
+  playerNameCancelButton: document.getElementById("playerNameCancelButton"),
+  playerNameStatus: document.getElementById("playerNameStatus"),
 };
 
 function init() {
@@ -80,6 +89,9 @@ function bindEvents() {
   els.themeToggleButton.addEventListener("click", toggleThemePreference);
   els.copyUidButton.addEventListener("click", handleCopyUid);
   els.passwordResetForm.addEventListener("submit", handlePasswordReset);
+  els.playerNameEditButton.addEventListener("click", handlePlayerNameEdit);
+  els.playerNameForm.addEventListener("submit", handlePlayerNameSave);
+  els.playerNameCancelButton.addEventListener("click", handlePlayerNameCancel);
   THEME_QUERY.addEventListener("change", handleThemeChange);
 }
 
@@ -166,17 +178,33 @@ function showLoadingState() {
   els.copyUidButton.disabled = true;
   resetCopyUidButtonIcon();
   clearCopyUidStatus();
+  if (els.settingsPlayerName) {
+    els.settingsPlayerName.textContent = "-";
+  }
 }
 
 async function hydrateProfile() {
   clearNotice(els.globalError);
 
   try {
-    const playerInfo = await api.getInfoFromSession();
-    state.player = playerInfo.info;
+    const [playerInfoResult, playerNameResult] = await Promise.allSettled([
+      api.getInfoFromSession(),
+      api.getPlayerName(),
+    ]);
 
-    renderProfile(state.player);
+    if (playerInfoResult.status === "rejected") {
+      throw playerInfoResult.reason;
+    }
+
+    state.player = playerInfoResult.value.info;
+    state.playerName =
+      playerNameResult.status === "fulfilled"
+        ? playerNameResult.value.name || null
+        : null;
+
+    renderProfile(state.player, state.playerName);
     renderSettings(state.player);
+    renderPlayerName(state.playerName);
   } catch (error) {
     handlePageError(error);
   }
@@ -191,8 +219,8 @@ function handlePageError(error) {
   showNotice(els.globalError, readableError(error));
 }
 
-function renderProfile(profile) {
-  const displayName = profile.name || profile.public_uid || "Player";
+function renderProfile(profile, playerName) {
+  const displayName = playerName || profile.name || profile.public_uid || "Player";
   const uid = profile.public_uid || "No public UID";
 
   els.playerName.textContent = displayName;
@@ -298,6 +326,65 @@ function renderSettings(profile) {
   if (els.settingsEmail) {
     els.settingsEmail.textContent = playerEmail || "Unknown";
   }
+}
+
+function renderPlayerName(name) {
+  if (els.settingsPlayerName) {
+    els.settingsPlayerName.textContent = name || "-";
+  }
+}
+
+function handlePlayerNameEdit() {
+  els.playerNameInput.value = state.playerName || "";
+  els.playerNameEditRow.classList.remove("hidden");
+  els.playerNameEditButton.classList.add("hidden");
+  clearPlayerNameStatus();
+  els.playerNameInput.focus();
+}
+
+function handlePlayerNameCancel() {
+  els.playerNameEditRow.classList.add("hidden");
+  els.playerNameEditButton.classList.remove("hidden");
+  clearPlayerNameStatus();
+}
+
+async function handlePlayerNameSave(event) {
+  event.preventDefault();
+  const name = els.playerNameInput.value.trim();
+  if (!name) {
+    showPlayerNameStatus("Player name cannot be empty.", true);
+    return;
+  }
+
+  const originalText = els.playerNameSaveButton.textContent;
+  els.playerNameSaveButton.disabled = true;
+  els.playerNameSaveButton.textContent = "Saving...";
+
+  try {
+    const result = await api.setPlayerName(name);
+    state.playerName = result.name;
+    renderPlayerName(state.playerName);
+    renderProfile(state.player, state.playerName);
+    handlePlayerNameCancel();
+  } catch (error) {
+    showPlayerNameStatus(readableError(error), true);
+  } finally {
+    els.playerNameSaveButton.disabled = false;
+    els.playerNameSaveButton.textContent = originalText;
+  }
+}
+
+function showPlayerNameStatus(text, isError) {
+  els.playerNameStatus.textContent = text;
+  els.playerNameStatus.classList.remove("hidden");
+  els.playerNameStatus.classList.toggle("notice--error", isError);
+  els.playerNameStatus.classList.toggle("notice--success", !isError);
+}
+
+function clearPlayerNameStatus() {
+  els.playerNameStatus.textContent = "";
+  els.playerNameStatus.classList.add("hidden");
+  els.playerNameStatus.classList.remove("notice--error", "notice--success");
 }
 
 async function handlePasswordReset(event) {

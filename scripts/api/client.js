@@ -264,5 +264,16 @@ export function createApiClient(config, getSessionToken) {
         `/game/player/${encodeURIComponent(playerPublicUid)}/following?${query.toString()}`,
       );
     },
+
+    getPlayerName() {
+      return apiRequest("/game/player/name");
+    },
+
+    setPlayerName(name) {
+      return apiRequest("/game/player/name", {
+        method: "PATCH",
+        body: { name },
+      });
+    },
   };
 }
