@@ -137,6 +137,13 @@ export function createApiClient(config, getSessionToken) {
       });
     },
 
+    detachProvider(provider) {
+      return apiRequest("/game/v1/connected-accounts/detach", {
+        method: "PUT",
+        body: { provider },
+      });
+    },
+
     listFriends() {
       return apiRequest("/game/player/friends?per_page=50&page=1");
     },

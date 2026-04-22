@@ -27,11 +27,23 @@ const THEME_QUERY = window.matchMedia("(prefers-color-scheme: dark)");
 const THEME_COOKIE_NAME = "ll_theme";
 const THEME_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 const LOGO_BY_THEME = {
-  light: "../styles/logo-lightmode.svg",
-  dark: "../styles/logo-darkmode.svg",
+  light: "../styles/assets/logo-lightmode.svg",
+  dark: "../styles/assets/logo-darkmode.svg",
 };
-const COPY_ICON = "📋";
-const COPY_SUCCESS_ICON = "✓";
+const THEME_ICON = {
+  moon: "../styles/assets/icons/moon-dark.svg",
+  sun: "../styles/assets/icons/sun-light.svg",
+};
+const COPY_ICON_BY_MODE = {
+  default: {
+    light: "../styles/assets/icons/copy-light.svg",
+    dark: "../styles/assets/icons/copy-dark.svg",
+  },
+  success: {
+    light: "../styles/assets/icons/check-light.svg",
+    dark: "../styles/assets/icons/check-dark.svg",
+  },
+};
 
 const api = createApiClient(CONFIG, () => state.sessionToken);
 
@@ -43,9 +55,6 @@ const els = {
   playerUid: document.getElementById("playerUid"),
   copyUidButton: document.getElementById("copyUidButton"),
   copyUidStatus: document.getElementById("copyUidStatus"),
-  friendsCount: document.getElementById("friendsCount"),
-  followersCount: document.getElementById("followersCount"),
-  followingCount: document.getElementById("followingCount"),
   listTitle: document.getElementById("listTitle"),
   listCount: document.getElementById("listCount"),
   listError: document.getElementById("listError"),
@@ -125,7 +134,8 @@ function syncTheme(isDark) {
 
   if (els.themeToggleButton) {
     const nextThemeLabel = isDark ? "Enable light mode" : "Enable dark mode";
-    els.themeToggleButton.innerHTML = `<span aria-hidden="true">${isDark ? "☀" : "🌙"}</span>`;
+    const themeIcon = isDark ? THEME_ICON.moon : THEME_ICON.sun;
+    els.themeToggleButton.innerHTML = `<span aria-hidden="true"><img src="${themeIcon}" alt="" /></span>`;
     els.themeToggleButton.setAttribute("aria-label", nextThemeLabel);
     els.themeToggleButton.setAttribute("title", nextThemeLabel);
   }
@@ -133,6 +143,8 @@ function syncTheme(isDark) {
   if (els.brandLogo) {
     els.brandLogo.src = isDark ? LOGO_BY_THEME.dark : LOGO_BY_THEME.light;
   }
+
+  updateCopyUidButtonIconForTheme();
 }
 
 function resolveInitialTheme() {
@@ -179,7 +191,6 @@ function showLoadingState() {
   }
   resetCopyUidButtonIcon();
   clearCopyUidStatus();
-  setSocialCounts(0, 0, 0);
   if (pageType === "friends") {
     els.list.innerHTML = `<tr><td colspan="4" class="muted table-empty">Loading friends...</td></tr>`;
   } else if (pageType === "followers") {
@@ -212,21 +223,12 @@ async function hydratePage() {
 }
 
 async function hydrateFriendsPage(publicUid) {
-  const [
-    friendsResult,
-    followersResult,
-    followingResult,
-    incomingResult,
-    outgoingResult,
-  ] = await Promise.allSettled([
-    api.listFriends(),
-    api.listFollowers(publicUid),
-    api.listFollowing(publicUid),
-    api.listIncomingFriendRequests(),
-    api.listOutgoingFriendRequests(),
-  ]);
-
-  setSocialCountsFromResults(friendsResult, followersResult, followingResult);
+  const [friendsResult, incomingResult, outgoingResult] =
+    await Promise.allSettled([
+      api.listFriends(),
+      api.listIncomingFriendRequests(),
+      api.listOutgoingFriendRequests(),
+    ]);
 
   if (friendsResult.status !== "fulfilled") {
     showNotice(els.listError, "Unable to load friends.");
@@ -252,17 +254,14 @@ async function hydrateFriendsPage(publicUid) {
 }
 
 async function hydrateFollowerLikePage(publicUid) {
-  const [friendsResult, followersResult, followingResult] =
-    await Promise.allSettled([
-      api.listFriends(),
-      api.listFollowers(publicUid),
-      api.listFollowing(publicUid),
-    ]);
-
-  setSocialCountsFromResults(friendsResult, followersResult, followingResult);
-
-  const activeResult =
-    pageType === "followers" ? followersResult : followingResult;
+  const activeResult = await Promise.resolve(
+    pageType === "followers"
+      ? api.listFollowers(publicUid)
+      : api.listFollowing(publicUid),
+  ).then(
+    (value) => ({ status: "fulfilled", value }),
+    (reason) => ({ status: "rejected", reason }),
+  );
 
   if (activeResult.status !== "fulfilled") {
     showNotice(els.listError, `Unable to load ${pageTitle.toLowerCase()}.`);
@@ -277,51 +276,6 @@ async function hydrateFollowerLikePage(publicUid) {
     activeResult.value.pagination?.total ?? rows.length,
   );
   renderFollowerLikeList(rows);
-}
-
-function setSocialCountsFromResults(
-  friendsResult,
-  followersResult,
-  followingResult,
-) {
-  const friendsCount =
-    friendsResult.status === "fulfilled"
-      ? (friendsResult.value.friends || []).length
-      : 0;
-
-  const followersRows =
-    followersResult.status === "fulfilled"
-      ? followersResult.value.followers || []
-      : [];
-  const followersCount =
-    followersResult.status === "fulfilled"
-      ? (followersResult.value.pagination?.total ?? followersRows.length)
-      : 0;
-
-  const followingRows =
-    followingResult.status === "fulfilled"
-      ? followingResult.value.followers || []
-      : [];
-  const followingCount =
-    followingResult.status === "fulfilled"
-      ? (followingResult.value.pagination?.total ?? followingRows.length)
-      : 0;
-
-  setSocialCounts(friendsCount, followersCount, followingCount);
-}
-
-function setSocialCounts(friendsCount, followersCount, followingCount) {
-  if (els.friendsCount) {
-    els.friendsCount.textContent = String(friendsCount);
-  }
-
-  if (els.followersCount) {
-    els.followersCount.textContent = String(followersCount);
-  }
-
-  if (els.followingCount) {
-    els.followingCount.textContent = String(followingCount);
-  }
 }
 
 function handlePageError(error) {
@@ -376,7 +330,8 @@ function showCopiedButtonState() {
     state.copyUidButtonTimerId = null;
   }
 
-  els.copyUidButton.innerHTML = `<span aria-hidden="true">${COPY_SUCCESS_ICON}</span>`;
+  const mode = getThemeMode();
+  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.success[mode]}" alt="" /></span>`;
 
   state.copyUidButtonTimerId = window.setTimeout(() => {
     state.copyUidButtonTimerId = null;
@@ -394,7 +349,27 @@ function resetCopyUidButtonIcon() {
     state.copyUidButtonTimerId = null;
   }
 
-  els.copyUidButton.innerHTML = `<span aria-hidden="true">${COPY_ICON}</span>`;
+  const mode = getThemeMode();
+  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.default[mode]}" alt="" /></span>`;
+}
+
+function updateCopyUidButtonIconForTheme() {
+  if (!els.copyUidButton) {
+    return;
+  }
+
+  const mode = getThemeMode();
+  const iconSet = state.copyUidButtonTimerId
+    ? COPY_ICON_BY_MODE.success
+    : COPY_ICON_BY_MODE.default;
+
+  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${iconSet[mode]}" alt="" /></span>`;
+}
+
+function getThemeMode() {
+  return document.documentElement.classList.contains(THEME_ROOT_CLASS)
+    ? "dark"
+    : "light";
 }
 
 function renderFriendList(

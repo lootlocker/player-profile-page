@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LootLocker Profile</title>
+    <link rel="icon" type="image/x-icon" href="styles/assets/favicon.ico" />
     <script>
       (function () {
         var match = document.cookie.match(
@@ -35,7 +36,7 @@
         <div class="brand">
           <img
             id="brandLogo"
-            src="styles/logo-lightmode.svg"
+            src="styles/assets/logo-lightmode.svg"
             class="profile-logo"
             alt="LootLocker"
           />
@@ -43,11 +44,13 @@
         <div class="topbar-actions">
           <button
             id="themeToggleButton"
-            class="button button--ghost button--small theme-toggle"
+            class="theme-toggle"
             aria-label="Enable dark mode"
             type="button"
           >
-            <span aria-hidden="true">🌙</span>
+            <span aria-hidden="true"
+              ><img src="styles/assets/icons/moon-dark.svg" alt=""
+            /></span>
           </button>
           <button id="logoutButton" class="button button--ghost" type="button">
             Sign out
@@ -64,42 +67,17 @@
               <p id="playerUid" class="muted">UID</p>
               <button
                 id="copyUidButton"
-                class="button button--ghost button--small copy-uid-button"
+                class="copy-uid-button"
                 aria-label="Copy Public UID"
                 title="Copy Public UID"
                 type="button"
               >
-                <span aria-hidden="true">📋</span>
+                <span aria-hidden="true"
+                  ><img src="styles/assets/icons/copy-light.svg" alt=""
+                /></span>
               </button>
             </div>
           </div>
-        </div>
-
-        <div class="stats">
-          <a
-            class="stat stat-link"
-            href="profile/friends.html"
-            aria-label="Open friends list"
-          >
-            <span class="stat__label">Friends</span>
-            <strong id="friendsCount">0</strong>
-          </a>
-          <a
-            class="stat stat-link"
-            href="profile/followers.html"
-            aria-label="Open followers list"
-          >
-            <span class="stat__label">Followers</span>
-            <strong id="followersCount">0</strong>
-          </a>
-          <a
-            class="stat stat-link"
-            href="profile/following.html"
-            aria-label="Open following list"
-          >
-            <span class="stat__label">Following</span>
-            <strong id="followingCount">0</strong>
-          </a>
         </div>
       </section>
 
@@ -145,6 +123,14 @@
                   <td><span class="stat__label">Joined</span></td>
                   <td><strong id="settingsJoinedAt">Unknown</strong></td>
                 </tr>
+                <tr>
+                  <td><span class="stat__label">Last seen</span></td>
+                  <td><strong id="settingsLastSeenAt">Unknown</strong></td>
+                </tr>
+                <tr>
+                  <td><span class="stat__label">Email</span></td>
+                  <td><strong id="settingsEmail">Unknown</strong></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -156,20 +142,9 @@
           </div>
           <p class="muted">
             For security, password updates are handled through a reset link sent
-            by email.
+            to your account email.
           </p>
           <form id="passwordResetForm" class="settings-form">
-            <label class="field" for="settingsEmailInput">
-              <span>Email</span>
-              <input
-                id="settingsEmailInput"
-                type="email"
-                autocomplete="email"
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-
             <div class="settings-form__actions">
               <button id="passwordResetButton" class="button" type="submit">
                 Send reset email

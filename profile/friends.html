@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Friends | LootLocker Profile</title>
+    <link rel="icon" type="image/x-icon" href="../styles/assets/favicon.ico" />
     <script>
       (function () {
         var match = document.cookie.match(
@@ -36,7 +37,7 @@
           <a href="../profile.html" aria-label="Back to profile">
             <img
               id="brandLogo"
-              src="../styles/logo-lightmode.svg"
+              src="../styles/assets/logo-lightmode.svg"
               class="profile-logo"
               alt="LootLocker"
             />
@@ -45,11 +46,13 @@
         <div class="topbar-actions">
           <button
             id="themeToggleButton"
-            class="button button--ghost button--small theme-toggle"
+            class="theme-toggle"
             aria-label="Enable dark mode"
             type="button"
           >
-            <span aria-hidden="true">🌙</span>
+            <span aria-hidden="true"
+              ><img src="../styles/assets/icons/moon-dark.svg" alt=""
+            /></span>
           </button>
           <button id="logoutButton" class="button button--ghost" type="button">
             Sign out
@@ -66,30 +69,17 @@
               <p id="playerUid" class="muted">UID</p>
               <button
                 id="copyUidButton"
-                class="button button--ghost button--small copy-uid-button"
+                class="copy-uid-button"
                 aria-label="Copy Public UID"
                 title="Copy Public UID"
                 type="button"
               >
-                <span aria-hidden="true">📋</span>
+                <span aria-hidden="true"
+                  ><img src="../styles/assets/icons/copy-light.svg" alt=""
+                /></span>
               </button>
             </div>
           </div>
-        </div>
-
-        <div class="stats">
-          <a class="stat stat-link" href="friends.html">
-            <span class="stat__label">Friends</span>
-            <strong id="friendsCount">0</strong>
-          </a>
-          <a class="stat stat-link" href="followers.html">
-            <span class="stat__label">Followers</span>
-            <strong id="followersCount">0</strong>
-          </a>
-          <a class="stat stat-link" href="following.html">
-            <span class="stat__label">Following</span>
-            <strong id="followingCount">0</strong>
-          </a>
         </div>
       </section>
 

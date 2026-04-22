@@ -16,11 +16,23 @@ const THEME_QUERY = window.matchMedia("(prefers-color-scheme: dark)");
 const THEME_COOKIE_NAME = "ll_theme";
 const THEME_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 const LOGO_BY_THEME = {
-  light: "styles/logo-lightmode.svg",
-  dark: "styles/logo-darkmode.svg",
+  light: "styles/assets/logo-lightmode.svg",
+  dark: "styles/assets/logo-darkmode.svg",
 };
-const COPY_ICON = "📋";
-const COPY_SUCCESS_ICON = "✓";
+const THEME_ICON = {
+  moon: "styles/assets/icons/moon-dark.svg",
+  sun: "styles/assets/icons/sun-light.svg",
+};
+const COPY_ICON_BY_MODE = {
+  default: {
+    light: "styles/assets/icons/copy-light.svg",
+    dark: "styles/assets/icons/copy-dark.svg",
+  },
+  success: {
+    light: "styles/assets/icons/check-light.svg",
+    dark: "styles/assets/icons/check-dark.svg",
+  },
+};
 
 const state = {
   sessionToken: getSessionToken(),
@@ -39,15 +51,12 @@ const els = {
   copyUidButton: document.getElementById("copyUidButton"),
   copyUidStatus: document.getElementById("copyUidStatus"),
   avatar: document.getElementById("avatar"),
-  friendsCount: document.getElementById("friendsCount"),
-  followersCount: document.getElementById("followersCount"),
-  followingCount: document.getElementById("followingCount"),
   settingsPlayerId: document.getElementById("settingsPlayerId"),
   settingsPublicUid: document.getElementById("settingsPublicUid"),
   settingsJoinedAt: document.getElementById("settingsJoinedAt"),
   settingsLastSeenAt: document.getElementById("settingsLastSeenAt"),
+  settingsEmail: document.getElementById("settingsEmail"),
   passwordResetForm: document.getElementById("passwordResetForm"),
-  settingsEmailInput: document.getElementById("settingsEmailInput"),
   passwordResetButton: document.getElementById("passwordResetButton"),
   passwordResetStatus: document.getElementById("passwordResetStatus"),
   brandLogo: document.getElementById("brandLogo"),
@@ -88,7 +97,8 @@ function syncTheme(isDark) {
 
   if (els.themeToggleButton) {
     const nextThemeLabel = isDark ? "Enable light mode" : "Enable dark mode";
-    els.themeToggleButton.innerHTML = `<span aria-hidden="true">${isDark ? "☀" : "🌙"}</span>`;
+    const themeIcon = isDark ? THEME_ICON.moon : THEME_ICON.sun;
+    els.themeToggleButton.innerHTML = `<span aria-hidden="true"><img src="${themeIcon}" alt="" /></span>`;
     els.themeToggleButton.setAttribute("aria-label", nextThemeLabel);
     els.themeToggleButton.setAttribute("title", nextThemeLabel);
   }
@@ -96,6 +106,8 @@ function syncTheme(isDark) {
   if (els.brandLogo) {
     els.brandLogo.src = isDark ? LOGO_BY_THEME.dark : LOGO_BY_THEME.light;
   }
+
+  updateCopyUidButtonIconForTheme();
 }
 
 function resolveInitialTheme() {
@@ -149,6 +161,9 @@ function showLoadingState() {
   if (els.settingsLastSeenAt) {
     els.settingsLastSeenAt.textContent = "Unknown";
   }
+  if (els.settingsEmail) {
+    els.settingsEmail.textContent = "Unknown";
+  }
   els.copyUidButton.disabled = true;
   resetCopyUidButtonIcon();
   clearCopyUidStatus();
@@ -163,18 +178,6 @@ async function hydrateProfile() {
 
     renderProfile(state.player);
     renderSettings(state.player);
-
-    const publicUid = state.player.public_uid;
-    const [friendsResult, followersResult, followingResult] =
-      await Promise.allSettled([
-        api.listFriends(),
-        api.listFollowers(publicUid),
-        api.listFollowing(publicUid),
-      ]);
-
-    handleFriendsResult(friendsResult);
-    handleFollowersResult(followersResult);
-    handleFollowingResult(followingResult);
   } catch (error) {
     handlePageError(error);
   }
@@ -228,7 +231,8 @@ function showCopiedButtonState() {
     state.copyUidButtonTimerId = null;
   }
 
-  els.copyUidButton.innerHTML = `<span aria-hidden="true">${COPY_SUCCESS_ICON}</span>`;
+  const mode = getThemeMode();
+  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.success[mode]}" alt="" /></span>`;
 
   state.copyUidButtonTimerId = window.setTimeout(() => {
     state.copyUidButtonTimerId = null;
@@ -246,7 +250,27 @@ function resetCopyUidButtonIcon() {
     state.copyUidButtonTimerId = null;
   }
 
-  els.copyUidButton.innerHTML = `<span aria-hidden="true">${COPY_ICON}</span>`;
+  const mode = getThemeMode();
+  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.default[mode]}" alt="" /></span>`;
+}
+
+function updateCopyUidButtonIconForTheme() {
+  if (!els.copyUidButton) {
+    return;
+  }
+
+  const mode = getThemeMode();
+  const iconSet = state.copyUidButtonTimerId
+    ? COPY_ICON_BY_MODE.success
+    : COPY_ICON_BY_MODE.default;
+
+  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${iconSet[mode]}" alt="" /></span>`;
+}
+
+function getThemeMode() {
+  return document.documentElement.classList.contains(THEME_ROOT_CLASS)
+    ? "dark"
+    : "light";
 }
 
 function renderSettings(profile) {
@@ -260,7 +284,7 @@ function renderSettings(profile) {
     profile.last_login ||
     profile.last_login_at ||
     profile.updated_at;
-  const email = profile.email || profile.player_email || "";
+  const playerEmail = resolveAccountEmail(profile);
 
   if (els.settingsPlayerId) {
     els.settingsPlayerId.textContent = String(playerId);
@@ -272,11 +296,12 @@ function renderSettings(profile) {
     els.settingsJoinedAt.textContent = formatDateTime(joinedAt);
   }
   if (els.settingsLastSeenAt) {
-    els.settingsLastSeenAt.textContent = formatDateTime(lastSeenAt);
+    els.settingsLastSeenAt.textContent = lastSeenAt
+      ? formatDateTime(lastSeenAt)
+      : "-";
   }
-
-  if (els.settingsEmailInput && email && !els.settingsEmailInput.value.trim()) {
-    els.settingsEmailInput.value = email;
+  if (els.settingsEmail) {
+    els.settingsEmail.textContent = playerEmail || "Unknown";
   }
 }
 
@@ -284,9 +309,9 @@ async function handlePasswordReset(event) {
   event.preventDefault();
   clearPasswordResetStatus();
 
-  const email = els.settingsEmailInput.value.trim();
+  const email = resolveAccountEmail(state.player);
   if (!email) {
-    showPasswordResetStatus("Please enter your account email.", true);
+    showPasswordResetStatus("No account email found for password reset.", true);
     return;
   }
 
@@ -306,40 +331,6 @@ async function handlePasswordReset(event) {
     els.passwordResetButton.disabled = false;
     els.passwordResetButton.textContent = originalText;
   }
-}
-
-function handleFriendsResult(result) {
-  if (result.status === "fulfilled") {
-    const friends = result.value.friends || [];
-    els.friendsCount.textContent = String(friends.length);
-    return;
-  }
-
-  els.friendsCount.textContent = "0";
-}
-
-function handleFollowersResult(result) {
-  if (result.status === "fulfilled") {
-    const followers = result.value.followers || [];
-    els.followersCount.textContent = String(
-      result.value.pagination?.total ?? followers.length,
-    );
-    return;
-  }
-
-  els.followersCount.textContent = "0";
-}
-
-function handleFollowingResult(result) {
-  if (result.status === "fulfilled") {
-    const following = result.value.followers || [];
-    els.followingCount.textContent = String(
-      result.value.pagination?.total ?? following.length,
-    );
-    return;
-  }
-
-  els.followingCount.textContent = "0";
 }
 
 function signOut() {
@@ -421,6 +412,17 @@ function clearPasswordResetStatus() {
   els.passwordResetStatus.textContent = "";
   els.passwordResetStatus.classList.add("hidden");
   els.passwordResetStatus.classList.remove("notice--error", "notice--success");
+}
+
+function resolveAccountEmail(profile) {
+  return String(
+    profile?.player_identifier ||
+      profile?.email ||
+      profile?.player_email ||
+      profile?.identifier ||
+      getCookie("ll_email") ||
+      "",
+  ).trim();
 }
 
 function setConnectLoading(isLoading) {

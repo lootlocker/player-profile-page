@@ -23,8 +23,8 @@ const THEME_ROOT_CLASS = "theme-dark";
 const THEME_QUERY = window.matchMedia("(prefers-color-scheme: dark)");
 const THEME_COOKIE_NAME = "ll_theme";
 const AUTH_LOGO_BY_THEME = {
-  light: "styles/logo-lightmode.svg",
-  dark: "styles/logo-darkmode.svg",
+  light: "styles/assets/logo-lightmode.svg",
+  dark: "styles/assets/logo-darkmode.svg",
 };
 
 const api = createApiClient(CONFIG, () => getSessionToken());
