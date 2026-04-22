@@ -84,14 +84,48 @@
         <div id="pageLayoutNav" class="page-layout__nav">
           <nav class="page-tabs" aria-label="Profile navigation">
             <a class="page-tab-link" href="../profile.html">Profile</a>
-            <a
-              class="page-tab-link is-active"
-              href="friends.html"
-              aria-current="page"
-              >Friends</a
-            >
-            <a class="page-tab-link" href="followers.html">Followers</a>
-            <a class="page-tab-link" href="following.html">Following</a>
+            <div class="social-menu">
+              <details class="social-menu__details">
+                <summary
+                  class="page-tab-link social-menu__summary is-active"
+                  aria-current="page"
+                >
+                  <span>Social</span>
+                  <span class="social-menu__arrow" aria-hidden="true"></span>
+                </summary>
+                <div
+                  class="social-menu__card"
+                  role="menu"
+                  aria-label="Social navigation"
+                >
+                  <a
+                    class="social-menu__link is-active"
+                    href="friends.html"
+                    aria-current="page"
+                    role="menuitem"
+                    >Friends</a
+                  >
+                  <a
+                    class="social-menu__link"
+                    href="followers.html"
+                    role="menuitem"
+                    >Followers</a
+                  >
+                  <a
+                    class="social-menu__link"
+                    href="following.html"
+                    role="menuitem"
+                    >Following</a
+                  >
+                  <a
+                    class="social-menu__link"
+                    href="blocked.html"
+                    role="menuitem"
+                    >Blocked</a
+                  >
+                </div>
+              </details>
+            </div>
             <a class="page-tab-link" href="platforms.html"
               >Connected Accounts</a
             >

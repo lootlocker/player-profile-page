@@ -61,39 +61,20 @@ export function createApiClient(config, getSessionToken) {
 
   async function blockPlayer(playerId) {
     const encodedPlayerId = encodeURIComponent(playerId);
-    const attempts = [
-      {
-        path: `/game/player/blocks/${encodedPlayerId}`,
-        method: "POST",
-      },
-      {
-        path: `/game/player/blocks/${encodedPlayerId}`,
-        method: "PUT",
-      },
-      {
-        path: `/game/player/block/${encodedPlayerId}`,
-        method: "POST",
-      },
-      {
-        path: `/game/player/block/${encodedPlayerId}`,
-        method: "PUT",
-      },
-    ];
+    return apiRequest(`/game/player/friends/${encodedPlayerId}/block`, {
+      method: "POST",
+    });
+  }
 
-    let lastError = null;
+  async function listBlockedPlayers() {
+    return apiRequest("/game/player/friends/blocked?per_page=50&page=1");
+  }
 
-    for (const attempt of attempts) {
-      try {
-        return await apiRequest(attempt.path, { method: attempt.method });
-      } catch (error) {
-        lastError = error;
-        if (error?.status !== 404 && error?.status !== 405) {
-          throw error;
-        }
-      }
-    }
-
-    throw lastError || new Error("Unable to block player.");
+  async function unblockPlayer(playerId) {
+    const encodedPlayerId = encodeURIComponent(playerId);
+    return apiRequest(`/game/player/friends/${encodedPlayerId}/unblock`, {
+      method: "POST",
+    });
   }
 
   return {
@@ -267,6 +248,8 @@ export function createApiClient(config, getSessionToken) {
     },
 
     blockPlayer,
+    listBlockedPlayers,
+    unblockPlayer,
 
     listFollowers(playerPublicUid) {
       const query = new URLSearchParams({ per_page: "20" });

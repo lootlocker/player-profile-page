@@ -102,37 +102,35 @@ function bindEvents() {
   els.copyUidButton?.addEventListener("click", handleCopyUid);
   THEME_QUERY.addEventListener("change", handleThemeChange);
 
+  els.list?.addEventListener("click", handleSocialListClick);
+  els.friendActionCloseButton?.addEventListener(
+    "click",
+    closeFriendActionModal,
+  );
+  els.friendActionCancelButton?.addEventListener(
+    "click",
+    closeFriendActionModal,
+  );
+  els.friendActionConfirmButton?.addEventListener("click", confirmFriendAction);
+  els.friendActionModal?.addEventListener("click", (event) => {
+    if (event.target === els.friendActionModal) {
+      closeFriendActionModal();
+    }
+  });
+
   if (pageType === "friends" && els.sendFriendRequestButton) {
     els.sendFriendRequestButton.addEventListener(
       "click",
       openFriendRequestModal,
     );
-    els.list?.addEventListener("click", handleSocialListClick);
     els.friendRequestForm?.addEventListener("submit", submitFriendRequest);
     els.friendRequestCancelButton?.addEventListener(
       "click",
       closeFriendRequestModal,
     );
-    els.friendActionCloseButton?.addEventListener(
-      "click",
-      closeFriendActionModal,
-    );
-    els.friendActionCancelButton?.addEventListener(
-      "click",
-      closeFriendActionModal,
-    );
-    els.friendActionConfirmButton?.addEventListener(
-      "click",
-      confirmFriendAction,
-    );
     els.friendRequestModal?.addEventListener("click", (event) => {
       if (event.target === els.friendRequestModal) {
         closeFriendRequestModal();
-      }
-    });
-    els.friendActionModal?.addEventListener("click", (event) => {
-      if (event.target === els.friendActionModal) {
-        closeFriendActionModal();
       }
     });
   }
@@ -214,6 +212,8 @@ function showLoadingState() {
     els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">Loading followers...</div></div>`;
   } else if (pageType === "following") {
     els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">Loading following...</div></div>`;
+  } else if (pageType === "blocked") {
+    els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">Loading blocked players...</div></div>`;
   } else {
     els.list.innerHTML = `<li class="muted">Loading ${escapeHtml(pageTitle.toLowerCase())}...</li>`;
   }
@@ -233,10 +233,36 @@ async function hydratePage() {
       return;
     }
 
+    if (pageType === "blocked") {
+      await hydrateBlockedPage();
+      return;
+    }
+
     await hydrateFollowerLikePage(state.player.public_uid);
   } catch (error) {
     handlePageError(error);
   }
+}
+
+async function hydrateBlockedPage() {
+  const blockedResult = await Promise.resolve(api.listBlockedPlayers()).then(
+    (value) => ({ status: "fulfilled", value }),
+    (reason) => ({ status: "rejected", reason }),
+  );
+
+  if (blockedResult.status !== "fulfilled") {
+    showNotice(els.listError, "Unable to load blocked players.");
+    els.listCount.textContent = "0";
+    renderListPlaceholder("No blocked players found.");
+    return;
+  }
+
+  clearNotice(els.listError);
+  const rows = extractSocialRows(blockedResult.value);
+  els.listCount.textContent = String(
+    blockedResult.value.pagination?.total ?? rows.length,
+  );
+  renderBlockedList(rows);
 }
 
 async function hydrateFriendsPage(publicUid) {
@@ -472,7 +498,7 @@ function renderFriendsTablePlaceholder(text) {
 
 function handleSocialListClick(event) {
   const button = event.target.closest(
-    "[data-remove-friend-id], [data-accept-friend-id], [data-cancel-friend-id], [data-block-player-id]",
+    "[data-remove-friend-id], [data-accept-friend-id], [data-cancel-friend-id], [data-block-player-id], [data-unblock-player-id]",
   );
   if (!button) {
     return;
@@ -495,6 +521,12 @@ function handleSocialListClick(event) {
       blockPlayerId,
       button.getAttribute("data-player-name") || "this player",
     );
+    return;
+  }
+
+  const unblockPlayerId = button.getAttribute("data-unblock-player-id");
+  if (unblockPlayerId) {
+    unblockPlayer(unblockPlayerId, button);
     return;
   }
 
@@ -597,7 +629,7 @@ async function confirmFriendAction() {
     }
 
     closeFriendActionModal();
-    await hydrateFriendsPage(state.player?.public_uid);
+    await refreshActiveSocialList();
   } catch (error) {
     if (isSessionError(error)) {
       signOut();
@@ -610,6 +642,43 @@ async function confirmFriendAction() {
       els.friendActionConfirmButton.textContent =
         actionType === "block" ? "Block player" : "Remove friend";
     }
+  }
+}
+
+async function refreshActiveSocialList() {
+  if (pageType === "friends") {
+    await hydrateFriendsPage(state.player?.public_uid);
+    return;
+  }
+
+  if (pageType === "blocked") {
+    await hydrateBlockedPage();
+    return;
+  }
+
+  await hydrateFollowerLikePage(state.player?.public_uid);
+}
+
+async function unblockPlayer(playerId, button) {
+  clearSocialActionStatus();
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "Unblocking...";
+
+  try {
+    await api.unblockPlayer(playerId);
+    showSocialActionStatus("Player unblocked.", false);
+    await refreshActiveSocialList();
+  } catch (error) {
+    if (isSessionError(error)) {
+      signOut();
+      return;
+    }
+
+    showSocialActionStatus(readableError(error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
   }
 }
 
@@ -814,13 +883,42 @@ function renderFollowerLikeList(rows) {
 
   els.list.innerHTML = rows
     .map((row) => {
-      const uid = row.PublicUID || row.public_uid || "No UID";
-      const name = row.player_name || "Unnamed Player";
+      const { name, uid, playerId } = normalizeSocialPerson(row);
+      const escapedPlayerName = escapeHtml(name);
+      const actionButton = playerId
+        ? `<button class="button button--ghost button--small button--danger" type="button" data-block-player-id="${escapeHtml(String(playerId))}" data-player-name="${escapedPlayerName}">Block</button>`
+        : "";
 
       return `
       <div class="platform-row">
-        <div class="platform-cell">${escapeHtml(name)}</div>
+        <div class="platform-cell">${escapedPlayerName}</div>
         <div class="platform-cell muted">${escapeHtml(uid)}</div>
+        <div class="platform-cell platform-cell--action">${actionButton ? `<div class="row-actions">${actionButton}</div>` : ""}</div>
+      </div>
+    `;
+    })
+    .join("");
+}
+
+function renderBlockedList(rows) {
+  if (!rows.length) {
+    renderListPlaceholder("No blocked players found.");
+    return;
+  }
+
+  els.list.innerHTML = rows
+    .map((row) => {
+      const { name, uid, playerId } = normalizeSocialPerson(row);
+      const escapedPlayerName = escapeHtml(name);
+      const actionButton = playerId
+        ? `<button class="button button--ghost button--small" type="button" data-unblock-player-id="${escapeHtml(String(playerId))}">Unblock</button>`
+        : "";
+
+      return `
+      <div class="platform-row">
+        <div class="platform-cell">${escapedPlayerName}</div>
+        <div class="platform-cell muted">${escapeHtml(uid)}</div>
+        <div class="platform-cell platform-cell--action">${actionButton ? `<div class="row-actions">${actionButton}</div>` : ""}</div>
       </div>
     `;
     })
@@ -833,7 +931,11 @@ function renderListPlaceholder(text) {
     return;
   }
 
-  if (pageType === "followers" || pageType === "following") {
+  if (
+    pageType === "followers" ||
+    pageType === "following" ||
+    pageType === "blocked"
+  ) {
     els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">${escapeHtml(text)}</div></div>`;
     return;
   }

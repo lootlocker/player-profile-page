@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Followers | LootLocker Profile</title>
+    <title>Blocked Players | LootLocker Profile</title>
     <link rel="icon" type="image/x-icon" href="../styles/assets/favicon.ico" />
     <script>
       (function () {
@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="../styles/styles.css" />
     <link rel="stylesheet" href="../styles/custom.css" />
   </head>
-  <body data-social-type="followers" data-social-title="Followers">
+  <body data-social-type="blocked" data-social-title="Blocked Players">
     <main class="shell">
       <p
         id="copyUidStatus"
@@ -105,9 +105,8 @@
                     >Friends</a
                   >
                   <a
-                    class="social-menu__link is-active"
+                    class="social-menu__link"
                     href="followers.html"
-                    aria-current="page"
                     role="menuitem"
                     >Followers</a
                   >
@@ -118,8 +117,9 @@
                     >Following</a
                   >
                   <a
-                    class="social-menu__link"
+                    class="social-menu__link is-active"
                     href="blocked.html"
+                    aria-current="page"
                     role="menuitem"
                     >Blocked</a
                   >
@@ -143,9 +143,12 @@
           <section class="content" aria-live="polite">
             <article class="card">
               <div class="section-title-row">
-                <h3 id="listTitle">Followers</h3>
+                <h3 id="listTitle">Blocked Players</h3>
                 <div class="social-head-actions">
-                  <span class="social-total-pill" aria-label="Total followers">
+                  <span
+                    class="social-total-pill"
+                    aria-label="Total blocked players"
+                  >
                     <span class="social-total-pill__label">Total</span>
                     <strong id="listCount">0</strong>
                   </span>
@@ -164,9 +167,9 @@
               ></p>
               <div class="platform-table-wrap">
                 <div
-                  id="followersTable"
-                  class="platform-table social-table social-table--followers"
-                  aria-label="Followers list"
+                  id="blockedTable"
+                  class="platform-table social-table social-table--blocked"
+                  aria-label="Blocked players list"
                 >
                   <div class="platform-table-header" role="row">
                     <div class="platform-cell platform-cell--header">
@@ -187,7 +190,7 @@
                   <div id="socialList" class="platform-table-body">
                     <div class="platform-row">
                       <div class="platform-cell table-empty muted">
-                        Loading followers...
+                        Loading blocked players...
                       </div>
                     </div>
                   </div>
@@ -195,48 +198,6 @@
               </div>
             </article>
           </section>
-        </div>
-      </section>
-
-      <section
-        id="friendActionModal"
-        class="modal hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="friendActionModalTitle"
-      >
-        <div class="modal__card">
-          <button
-            id="friendActionCloseButton"
-            class="modal__close button button--ghost button--small"
-            type="button"
-            aria-label="Close action modal"
-          >
-            ×
-          </button>
-          <h3 id="friendActionModalTitle">Block Player</h3>
-          <p id="friendActionMessage" class="muted"></p>
-          <p
-            id="friendActionStatus"
-            class="notice notice--error hidden"
-            role="alert"
-          ></p>
-          <div class="modal__actions">
-            <button
-              id="friendActionCancelButton"
-              class="button button--ghost button--small"
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              id="friendActionConfirmButton"
-              class="button button--small button--danger"
-              type="button"
-            >
-              Block player
-            </button>
-          </div>
         </div>
       </section>
     </main>
