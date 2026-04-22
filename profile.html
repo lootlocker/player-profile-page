@@ -22,7 +22,10 @@
       })();
     </script>
     <link rel="stylesheet" href="styles/styles.css" />
-    <link rel="stylesheet" href="styles/custom.css" />
+    <link
+      rel="stylesheet"
+      href="styles/templates/template-darcular.css"
+    />
   </head>
   <body>
     <main class="shell">
@@ -82,83 +85,82 @@
         </div>
       </section>
 
-      <nav class="page-tabs" aria-label="Profile navigation">
-        <a
-          class="page-tab-link is-active"
-          href="profile.html"
-          aria-current="page"
-          >Profile</a
-        >
-        <a class="page-tab-link" href="profile/friends.html">Friends</a>
-        <a class="page-tab-link" href="profile/followers.html">Followers</a>
-        <a class="page-tab-link" href="profile/following.html">Following</a>
-        <a class="page-tab-link" href="profile/platforms.html"
-          >Connected Accounts</a
-        >
-      </nav>
-      <div class="page-tabs-divider" aria-hidden="true"></div>
-
-      <section
-        id="globalError"
-        class="notice notice--error hidden"
-        role="alert"
-      ></section>
-
-      <section id="appView" class="content" aria-live="polite">
-        <article class="card">
-          <div class="section-title-row">
-            <h3>Settings</h3>
-          </div>
-
-          <div class="platform-table-wrap">
-            <table
-              class="platform-table settings-table"
-              aria-label="Account details"
+      <section id="pageLayout" class="page-layout">
+        <div id="pageLayoutNav" class="page-layout__nav">
+          <nav class="page-tabs" aria-label="Profile navigation">
+            <a
+              class="page-tab-link is-active"
+              href="profile.html"
+              aria-current="page"
+              >Profile</a
             >
-              <tbody>
-                <tr>
-                  <td><span class="stat__label">Public UID</span></td>
-                  <td><strong id="settingsPublicUid">-</strong></td>
-                </tr>
-                <tr>
-                  <td><span class="stat__label">Joined</span></td>
-                  <td><strong id="settingsJoinedAt">Unknown</strong></td>
-                </tr>
-                <tr>
-                  <td><span class="stat__label">Last seen</span></td>
-                  <td><strong id="settingsLastSeenAt">Unknown</strong></td>
-                </tr>
-                <tr>
-                  <td><span class="stat__label">Email</span></td>
-                  <td><strong id="settingsEmail">Unknown</strong></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
+            <a class="page-tab-link" href="profile/friends.html">Friends</a>
+            <a class="page-tab-link" href="profile/followers.html">Followers</a>
+            <a class="page-tab-link" href="profile/following.html">Following</a>
+            <a class="page-tab-link" href="profile/platforms.html"
+              >Connected Accounts</a
+            >
+          </nav>
+          <div class="page-tabs-divider" aria-hidden="true"></div>
+        </div>
 
-        <article class="card">
-          <div class="section-title-row">
-            <h3>Change Password</h3>
-          </div>
-          <p class="muted">
-            For security, password updates are handled through a reset link sent
-            to your account email.
-          </p>
-          <form id="passwordResetForm" class="settings-form">
-            <div class="settings-form__actions">
-              <button id="passwordResetButton" class="button" type="submit">
-                Send reset email
-              </button>
-            </div>
-          </form>
-          <p
-            id="passwordResetStatus"
-            class="notice hidden"
-            role="status"
-            aria-live="polite"
-          ></p>
-        </article>
+        <div id="pageLayoutMain" class="page-layout__main">
+          <section
+            id="globalError"
+            class="notice notice--error hidden"
+            role="alert"
+          ></section>
+
+          <section id="appView" class="content" aria-live="polite">
+            <article class="card">
+              <div class="section-title-row">
+                <h3>Settings</h3>
+              </div>
+
+              <div class="settings-rows" aria-label="Account details">
+                <div class="settings-row">
+                  <span class="stat__label">Public UID</span>
+                  <strong id="settingsPublicUid">-</strong>
+                </div>
+                <div class="settings-row">
+                  <span class="stat__label">Joined</span>
+                  <strong id="settingsJoinedAt">Unknown</strong>
+                </div>
+                <div class="settings-row">
+                  <span class="stat__label">Last seen</span>
+                  <strong id="settingsLastSeenAt">Unknown</strong>
+                </div>
+                <div class="settings-row">
+                  <span class="stat__label">Email</span>
+                  <strong id="settingsEmail">Unknown</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="section-title-row">
+                <h3>Change Password</h3>
+              </div>
+              <p class="muted">
+                For security, password updates are handled through a reset link
+                sent to your account email.
+              </p>
+              <form id="passwordResetForm" class="settings-form">
+                <div class="settings-form__actions">
+                  <button id="passwordResetButton" class="button" type="submit">
+                    Send reset email
+                  </button>
+                </div>
+              </form>
+              <p
+                id="passwordResetStatus"
+                class="notice hidden"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </article>
+          </section>
+        </div>
       </section>
     </main>
 

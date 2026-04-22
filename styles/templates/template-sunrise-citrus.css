@@ -1,0 +1,174 @@
+/*
+  Sunrise Citrus Template
+  Copy this file (or individual sections) into styles/custom.css.
+
+  Section guide:
+  1) Theme tokens
+  2) Typography + warm page mood
+  3) Auth card polish
+  4) Accent-heavy tabs and chips
+  5) Heatwave card rows + social rhythm
+*/
+
+/* 1) Theme tokens --------------------------------------------------------- */
+:root {
+  --bg: #fff7ef;
+  --card: #ffffff;
+  --card-muted: #fff1e1;
+  --surface: #ffffff;
+  --input-bg: #fffdf9;
+  --text: #2e2116;
+  --text-muted: #7b614d;
+  --border: #efceb2;
+  --accent: #e7692d;
+  --accent-soft: #ffe2cf;
+  --stat-hover-bg: #ffe9d8;
+  --danger: #af2f24;
+  --danger-soft: #ffe7e4;
+  --notice-error-border: #f0bbb6;
+  --status-linked-border: #79cc95;
+  --status-linked-bg: #e5f7eb;
+  --status-linked-text: #125232;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --space-3: 0.8rem;
+  --space-4: 1.05rem;
+  --space-5: 1.35rem;
+  --shadow: 0 10px 24px rgba(145, 74, 28, 0.1);
+}
+
+:root.theme-dark {
+  --bg: #1a120d;
+  --card: #241913;
+  --card-muted: #2d2018;
+  --surface: #2a1d15;
+  --input-bg: #21160f;
+  --text: #f8e8dd;
+  --text-muted: #d3b39c;
+  --border: #5a3f2f;
+  --accent: #ff8a4d;
+  --accent-soft: #5a2f18;
+  --stat-hover-bg: #35261d;
+  --danger: #ff9d93;
+  --danger-soft: #4a201d;
+  --notice-error-border: #9b5a54;
+  --status-linked-border: #78d49e;
+  --status-linked-bg: #173726;
+  --status-linked-text: #cbf5db;
+  --shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* 2) Typography + warm page mood ----------------------------------------- */
+body {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  background-image:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent) 16%, transparent) 0, transparent 38%),
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, #f59e0b 18%, transparent) 0, transparent 38%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 9%, var(--bg)) 0%,
+      var(--bg) 46%,
+      color-mix(in srgb, #f59e0b 12%, var(--bg)) 100%
+    );
+}
+
+.shell {
+  position: relative;
+}
+
+.shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    -12deg,
+    transparent 0 26px,
+    color-mix(in srgb, var(--accent) 8%, transparent) 26px 29px
+  );
+  opacity: 0.24;
+}
+
+/* 3) Auth card polish ----------------------------------------------------- */
+.auth-card {
+  border-width: 2px;
+  background: linear-gradient(
+    164deg,
+    color-mix(in srgb, var(--card) 86%, var(--accent-soft)) 0%,
+    var(--card) 58%,
+    color-mix(in srgb, var(--card) 90%, #ffd7bc) 100%
+  );
+  box-shadow:
+    var(--shadow),
+    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 18px 40px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.auth-logo {
+  transform: translateY(2px);
+}
+
+.card {
+  border-width: 2px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--card) 90%, var(--accent-soft)) 0%,
+    var(--card) 60%,
+    color-mix(in srgb, #f59e0b 8%, var(--card)) 100%
+  );
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* 4) Accent-heavy tabs and chips ----------------------------------------- */
+.page-tab-link {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-width: 2px;
+}
+
+.page-tab-link.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 16%, var(--card));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.status-chip--linked,
+.pending-badge--incoming {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-linked-border) 45%, transparent);
+}
+
+/* 5) Heatwave card rows + social rhythm --------------------------------- */
+.settings-row,
+.platform-row {
+  border: 2px solid color-mix(in srgb, var(--accent) 30%, var(--border)) !important;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    170deg,
+    color-mix(in srgb, var(--accent) 10%, var(--card-muted)) 0%,
+    color-mix(in srgb, #f59e0b 10%, var(--card-muted)) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent),
+    0 8px 18px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.platform-table-body {
+  gap: var(--space-3);
+}
+
+.platform-row .platform-cell {
+  border-bottom: none;
+}
+
+.social-total-pill {
+  border-width: 2px;
+  background: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--accent) 16%, var(--card)) 0%,
+    color-mix(in srgb, #f59e0b 14%, var(--card)) 100%
+  );
+}

@@ -22,7 +22,10 @@
       })();
     </script>
     <link rel="stylesheet" href="../styles/styles.css" />
-    <link rel="stylesheet" href="../styles/custom.css" />
+    <link
+      rel="stylesheet"
+      href="../styles/templates/template-darcular.css"
+    />
   </head>
   <body data-social-type="friends" data-social-title="Friends">
     <main class="shell">
@@ -84,73 +87,94 @@
         </div>
       </section>
 
-      <nav class="page-tabs" aria-label="Profile navigation">
-        <a class="page-tab-link" href="../profile.html">Profile</a>
-        <a
-          class="page-tab-link is-active"
-          href="friends.html"
-          aria-current="page"
-          >Friends</a
-        >
-        <a class="page-tab-link" href="followers.html">Followers</a>
-        <a class="page-tab-link" href="following.html">Following</a>
-        <a class="page-tab-link" href="platforms.html">Connected Accounts</a>
-      </nav>
-      <div class="page-tabs-divider" aria-hidden="true"></div>
+      <section id="pageLayout" class="page-layout">
+        <div id="pageLayoutNav" class="page-layout__nav">
+          <nav class="page-tabs" aria-label="Profile navigation">
+            <a class="page-tab-link" href="../profile.html">Profile</a>
+            <a
+              class="page-tab-link is-active"
+              href="friends.html"
+              aria-current="page"
+              >Friends</a
+            >
+            <a class="page-tab-link" href="followers.html">Followers</a>
+            <a class="page-tab-link" href="following.html">Following</a>
+            <a class="page-tab-link" href="platforms.html"
+              >Connected Accounts</a
+            >
+          </nav>
+          <div class="page-tabs-divider" aria-hidden="true"></div>
+        </div>
 
-      <section
-        id="globalError"
-        class="notice notice--error hidden"
-        role="alert"
-      ></section>
-
-      <section class="content" aria-live="polite">
-        <article class="card">
-          <div class="section-title-row section-title-row--start">
-            <h3 id="listTitle">Friends</h3>
-            <div class="social-head-actions">
-              <button
-                id="sendFriendRequestButton"
-                class="button button--small"
-                type="button"
-              >
-                Send request
-              </button>
-              <span class="social-total-pill" aria-label="Total friends">
-                <span class="social-total-pill__label">Total</span>
-                <strong id="listCount">0</strong>
-              </span>
-            </div>
-          </div>
-          <p
-            id="socialActionStatus"
-            class="notice hidden"
-            role="status"
-            aria-live="polite"
-          ></p>
-          <p
-            id="listError"
+        <div id="pageLayoutMain" class="page-layout__main">
+          <section
+            id="globalError"
             class="notice notice--error hidden"
             role="alert"
-          ></p>
-          <div class="platform-table-wrap">
-            <table class="platform-table" aria-label="Friends list">
-              <thead>
-                <tr>
-                  <th>Player</th>
-                  <th>Public UID</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="socialList">
-                <tr>
-                  <td colspan="4" class="muted">Loading friends...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
+          ></section>
+
+          <section class="content" aria-live="polite">
+            <article class="card">
+              <div class="section-title-row section-title-row--start">
+                <h3 id="listTitle">Friends</h3>
+                <div class="social-head-actions">
+                  <button
+                    id="sendFriendRequestButton"
+                    class="button button--small"
+                    type="button"
+                  >
+                    Send request
+                  </button>
+                  <span class="social-total-pill" aria-label="Total friends">
+                    <span class="social-total-pill__label">Total</span>
+                    <strong id="listCount">0</strong>
+                  </span>
+                </div>
+              </div>
+              <p
+                id="socialActionStatus"
+                class="notice hidden"
+                role="status"
+                aria-live="polite"
+              ></p>
+              <p
+                id="listError"
+                class="notice notice--error hidden"
+                role="alert"
+              ></p>
+              <div class="platform-table-wrap">
+                <div
+                  class="platform-table social-table social-table--friends"
+                  aria-label="Friends list"
+                >
+                  <div class="platform-table-header" role="row">
+                    <div class="platform-cell platform-cell--header">
+                      Player
+                    </div>
+                    <div class="platform-cell platform-cell--header">
+                      Public UID
+                    </div>
+                    <div class="platform-cell platform-cell--header">
+                      Status
+                    </div>
+                    <div
+                      class="platform-cell platform-cell--header platform-cell--action"
+                    >
+                      Action
+                    </div>
+                  </div>
+                  <div id="socialList" class="platform-table-body">
+                    <div class="platform-row">
+                      <div class="platform-cell table-empty muted">
+                        Loading friends...
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
       </section>
 
       <section

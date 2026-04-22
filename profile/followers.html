@@ -22,7 +22,10 @@
       })();
     </script>
     <link rel="stylesheet" href="../styles/styles.css" />
-    <link rel="stylesheet" href="../styles/custom.css" />
+    <link
+      rel="stylesheet"
+      href="../styles/templates/template-darcular.css"
+    />
   </head>
   <body data-social-type="followers" data-social-title="Followers">
     <main class="shell">
@@ -84,60 +87,73 @@
         </div>
       </section>
 
-      <nav class="page-tabs" aria-label="Profile navigation">
-        <a class="page-tab-link" href="../profile.html">Profile</a>
-        <a class="page-tab-link" href="friends.html">Friends</a>
-        <a
-          class="page-tab-link is-active"
-          href="followers.html"
-          aria-current="page"
-          >Followers</a
-        >
-        <a class="page-tab-link" href="following.html">Following</a>
-        <a class="page-tab-link" href="platforms.html">Connected Accounts</a>
-      </nav>
-      <div class="page-tabs-divider" aria-hidden="true"></div>
+      <section id="pageLayout" class="page-layout">
+        <div id="pageLayoutNav" class="page-layout__nav">
+          <nav class="page-tabs" aria-label="Profile navigation">
+            <a class="page-tab-link" href="../profile.html">Profile</a>
+            <a class="page-tab-link" href="friends.html">Friends</a>
+            <a
+              class="page-tab-link is-active"
+              href="followers.html"
+              aria-current="page"
+              >Followers</a
+            >
+            <a class="page-tab-link" href="following.html">Following</a>
+            <a class="page-tab-link" href="platforms.html"
+              >Connected Accounts</a
+            >
+          </nav>
+          <div class="page-tabs-divider" aria-hidden="true"></div>
+        </div>
 
-      <section
-        id="globalError"
-        class="notice notice--error hidden"
-        role="alert"
-      ></section>
-
-      <section class="content" aria-live="polite">
-        <article class="card">
-          <div class="section-title-row">
-            <h3 id="listTitle">Followers</h3>
-            <div class="social-head-actions">
-              <span class="social-total-pill" aria-label="Total followers">
-                <span class="social-total-pill__label">Total</span>
-                <strong id="listCount">0</strong>
-              </span>
-            </div>
-          </div>
-          <p
-            id="listError"
+        <div id="pageLayoutMain" class="page-layout__main">
+          <section
+            id="globalError"
             class="notice notice--error hidden"
             role="alert"
-          ></p>
-          <div class="platform-table-wrap">
-            <table class="platform-table" aria-label="Followers list">
-              <thead>
-                <tr>
-                  <th>Player</th>
-                  <th>Public UID</th>
-                </tr>
-              </thead>
-              <tbody id="socialList">
-                <tr>
-                  <td colspan="2" class="muted table-empty">
-                    Loading followers...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
+          ></section>
+
+          <section class="content" aria-live="polite">
+            <article class="card">
+              <div class="section-title-row">
+                <h3 id="listTitle">Followers</h3>
+                <div class="social-head-actions">
+                  <span class="social-total-pill" aria-label="Total followers">
+                    <span class="social-total-pill__label">Total</span>
+                    <strong id="listCount">0</strong>
+                  </span>
+                </div>
+              </div>
+              <p
+                id="listError"
+                class="notice notice--error hidden"
+                role="alert"
+              ></p>
+              <div class="platform-table-wrap">
+                <div
+                  class="platform-table social-table social-table--followers"
+                  aria-label="Followers list"
+                >
+                  <div class="platform-table-header" role="row">
+                    <div class="platform-cell platform-cell--header">
+                      Player
+                    </div>
+                    <div class="platform-cell platform-cell--header">
+                      Public UID
+                    </div>
+                  </div>
+                  <div id="socialList" class="platform-table-body">
+                    <div class="platform-row">
+                      <div class="platform-cell table-empty muted">
+                        Loading followers...
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
       </section>
     </main>
 

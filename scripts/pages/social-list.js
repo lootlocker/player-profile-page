@@ -192,11 +192,11 @@ function showLoadingState() {
   resetCopyUidButtonIcon();
   clearCopyUidStatus();
   if (pageType === "friends") {
-    els.list.innerHTML = `<tr><td colspan="4" class="muted table-empty">Loading friends...</td></tr>`;
+    els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">Loading friends...</div></div>`;
   } else if (pageType === "followers") {
-    els.list.innerHTML = `<tr><td colspan="2" class="muted table-empty">Loading followers...</td></tr>`;
+    els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">Loading followers...</div></div>`;
   } else if (pageType === "following") {
-    els.list.innerHTML = `<tr><td colspan="2" class="muted table-empty">Loading following...</td></tr>`;
+    els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">Loading following...</div></div>`;
   } else {
     els.list.innerHTML = `<li class="muted">Loading ${escapeHtml(pageTitle.toLowerCase())}...</li>`;
   }
@@ -419,17 +419,17 @@ function renderFriendList(
               : "";
 
       return `
-      <tr>
-        <td>${escapeHtml(name)}</td>
-        <td class="muted">${escapeHtml(uid)}</td>
-        <td>
+      <div class="platform-row">
+        <div class="platform-cell">${escapeHtml(name)}</div>
+        <div class="platform-cell muted">${escapeHtml(uid)}</div>
+        <div class="platform-cell">
           <div class="list-item__badges">
             ${pendingBadges}
             <span class="${statusChipClass}">${escapeHtml(statusLabel)}</span>
           </div>
-        </td>
-        <td>${actionButton}</td>
-      </tr>
+        </div>
+        <div class="platform-cell platform-cell--action">${actionButton}</div>
+      </div>
     `;
     })
     .join("");
@@ -441,7 +441,7 @@ function renderFriendsTablePlaceholder(text) {
     return;
   }
 
-  els.list.innerHTML = `<tr><td colspan="4" class="muted table-empty">${escapeHtml(text)}</td></tr>`;
+  els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">${escapeHtml(text)}</div></div>`;
 }
 
 function handleSocialListClick(event) {
@@ -502,7 +502,7 @@ async function acceptFriendRequest(playerId, button) {
 
   try {
     await api.acceptFriendRequest(playerId);
-    showSocialActionStatus("Friend request accepted.", false);
+    showSocialActionStatus("Friend request accept ed.", false);
     await hydrateFriendsPage(state.player?.public_uid);
   } catch (error) {
     if (isSessionError(error)) {
@@ -699,10 +699,10 @@ function renderFollowerLikeList(rows) {
       const name = row.player_name || "Unnamed Player";
 
       return `
-      <tr>
-        <td>${escapeHtml(name)}</td>
-        <td class="muted">${escapeHtml(uid)}</td>
-      </tr>
+      <div class="platform-row">
+        <div class="platform-cell">${escapeHtml(name)}</div>
+        <div class="platform-cell muted">${escapeHtml(uid)}</div>
+      </div>
     `;
     })
     .join("");
@@ -710,12 +710,12 @@ function renderFollowerLikeList(rows) {
 
 function renderListPlaceholder(text) {
   if (pageType === "friends") {
-    els.list.innerHTML = `<tr><td colspan="4" class="muted table-empty">${escapeHtml(text)}</td></tr>`;
+    els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">${escapeHtml(text)}</div></div>`;
     return;
   }
 
   if (pageType === "followers" || pageType === "following") {
-    els.list.innerHTML = `<tr><td colspan="2" class="muted table-empty">${escapeHtml(text)}</td></tr>`;
+    els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">${escapeHtml(text)}</div></div>`;
     return;
   }
 

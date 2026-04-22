@@ -1,0 +1,414 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+/*
+  Darcular Template
+  Copy this file (or individual sections) into styles/custom.css.
+
+  Section guide:
+  1) Theme tokens
+  2) Typography + page atmosphere
+  3) Buttons + tabs treatment
+  4) Content card rhythm
+  5) Terminal row blocks
+*/
+
+/* 1) Theme tokens --------------------------------------------------------- */
+:root {
+  --bg: #2f3032;
+  --card: #3c3f41;
+  --card-muted: #313335;
+  --surface: #3c3f41;
+  --input-bg: #45494a;
+  --text: #a9b7c6;
+  --text-muted: #808080;
+  --border: #555a5c;
+  --accent: #4e94ce;
+  --accent-soft: #2f3b47;
+  --stat-hover-bg: #3f4547;
+  --danger: #cc6666;
+  --danger-soft: #4a3535;
+  --notice-error-border: #7a5a5a;
+  --provider-icon-bg: #4f5560;
+  --status-linked-border: #6f8ea8;
+  --status-linked-bg: #36424d;
+  --status-linked-text: #a9b7c6;
+  --pending-incoming-border: #6f8ea8;
+  --pending-incoming-bg: #36424d;
+  --pending-incoming-text: #a9b7c6;
+  --pending-outgoing-border: #cc7832;
+  --pending-outgoing-bg: #4b3a2b;
+  --pending-outgoing-text: #d9b08c;
+  --button-text: #dfe6ee;
+  --toast-success-bg: #3b4a3a;
+  --toast-success-border: #566a56;
+  --toast-success-text: #b7d6bb;
+  --radius: 4px;
+  --radius-sm: 3px;
+  --space-3: 0.72rem;
+  --space-4: 0.95rem;
+  --space-5: 1.2rem;
+  --shadow: none;
+}
+
+:root.theme-dark {
+  --bg: #2f3032;
+  --card: #3c3f41;
+  --card-muted: #313335;
+  --surface: #3c3f41;
+  --input-bg: #45494a;
+  --text: #a9b7c6;
+  --text-muted: #808080;
+  --border: #555a5c;
+  --accent: #4e94ce;
+  --accent-soft: #2f3b47;
+  --stat-hover-bg: #3f4547;
+  --danger: #cc6666;
+  --danger-soft: #4a3535;
+  --notice-error-border: #7a5a5a;
+  --provider-icon-bg: #4f5560;
+  --status-linked-border: #6f8ea8;
+  --status-linked-bg: #36424d;
+  --status-linked-text: #a9b7c6;
+  --pending-incoming-border: #6f8ea8;
+  --pending-incoming-bg: #36424d;
+  --pending-incoming-text: #a9b7c6;
+  --pending-outgoing-border: #cc7832;
+  --pending-outgoing-bg: #4b3a2b;
+  --pending-outgoing-text: #d9b08c;
+  --button-text: #dfe6ee;
+  --toast-success-bg: #3b4a3a;
+  --toast-success-border: #566a56;
+  --toast-success-text: #b7d6bb;
+  --shadow: none;
+}
+
+:root,
+:root.theme-dark,
+:root:not(.theme-dark) {
+  color-scheme: dark;
+}
+
+/* 2) Typography + page atmosphere ---------------------------------------- */
+body {
+  font-family: "JetBrains Mono", "Consolas", "Droid Sans Mono", "Menlo", "Monaco", "Courier New", monospace;
+  background-image: none;
+}
+
+button,
+input,
+select,
+textarea,
+a,
+p,
+span,
+div,
+li,
+th,
+td,
+h1,
+h2,
+h3 {
+  font-family: "JetBrains Mono", "Consolas", "Droid Sans Mono", "Menlo", "Monaco", "Courier New", monospace;
+}
+
+body::before {
+  content: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    color-mix(in srgb, #ffffff 7%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: 0.12;
+  z-index: 0;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+}
+
+.page-layout {
+  background: #232425;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, #232425);
+  border-radius: var(--radius);
+  padding: var(--space-8);
+  margin: 0 calc(-1 * var(--space-8));
+}
+
+/* 3) Buttons + tabs treatment -------------------------------------------- */
+.button {
+  border-radius: 3px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 500;
+  box-shadow: none;
+  font-size: 0.85rem;
+  padding: var(--space-2) var(--space-8);
+  background: #385781;
+  border-color: #4E6D8E;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.button:hover {
+  background: color-mix(in srgb, var(--card-muted) 88%, var(--bg));
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--border) 88%, var(--bg));
+}
+
+.page-tab-link {
+  border-radius: 0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  text-transform: uppercase;
+}
+
+.page-tab-link.is-active {
+  border-bottom-color: #e5c07b;
+  color: #e6e6e6;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page-tab-link:hover {
+  color: #d0d0d0;
+  background: transparent;
+}
+
+.page-tabs-divider {
+  display: none;
+}
+
+.theme-toggle {
+  display: none !important;
+}
+
+/* 4) Content panel flattening --------------------------------------------- */
+.content {
+  gap: var(--space-5);
+}
+
+.content .card {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.setting-item {
+  border-width: 2px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--card-muted));
+}
+
+/* 5) Terminal row blocks -------------------------------------------------- */
+.platform-table-header .platform-cell--header {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--text-muted) 78%, var(--text));
+}
+
+.settings-row,
+.platform-row {
+  border: none !important;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.platform-table-body {
+  gap: 0;
+}
+
+.platform-row .platform-cell,
+.settings-row {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, var(--bg));
+}
+
+.platform-row .platform-cell {
+  padding: var(--space-2) 0;
+}
+
+.settings-row {
+  padding: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.settings-rows {
+  counter-reset: env-line;
+}
+
+.settings-row {
+  counter-increment: env-line;
+}
+
+.platform-name,
+.stat__label,
+.settings-row strong {
+  color: var(--text);
+}
+
+.muted,
+.platform-cell.muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.button,
+.page-tab-link {
+  color: var(--text);
+}
+
+h1,
+h2,
+h3,
+.stat__label,
+.platform-cell--header {
+  font-family: "JetBrains Mono", "Consolas", "Droid Sans Mono", "Menlo", "Monaco", "Courier New", monospace;
+}
+
+h1,
+h2,
+h3,
+.section-title-row h3,
+.section-title-row--start h3,
+#listTitle {
+  color: #ffc66d;
+}
+
+.stat__label,
+.platform-cell--header {
+  color: #cc7832;
+}
+
+.settings-row .stat__label {
+  display: inline-flex;
+  align-items: baseline;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  color: transparent;
+  font-size: 0;
+}
+
+.settings-row::before {
+  content: counter(env-line);
+  color: #606366;
+  margin-right: 1ch;
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+  padding-right: 1ch;
+  padding: var(--space-1) 1ch var(--space-1) 0;
+  border-right: 1px solid color-mix(in srgb, var(--border) 85%, var(--bg));
+}
+
+.settings-row .stat__label::before {
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  font-size: 0.85rem;
+  position: absolute;
+}
+
+.settings-row:nth-child(1) .stat__label::before {
+  content: "PUBLIC_UID";
+}
+
+.settings-row:nth-child(2) .stat__label::before {
+  content: "JOINED";
+}
+
+.settings-row:nth-child(3) .stat__label::before {
+  content: "LAST_SEEN";
+}
+
+.settings-row:nth-child(4) .stat__label::before {
+  content: "EMAIL";
+}
+
+.settings-row .stat__label::after {
+  content: "=";
+  color: #f7768e;
+  margin: 0 0 0 0.5ch;
+}
+
+.platform-cell strong,
+.platform-row .platform-cell:first-child,
+.platform-name {
+  color: #a9b7c6;
+}
+
+.settings-row .stat__label,
+.settings-row strong,
+#settingsPublicUid,
+#settingsJoinedAt,
+#settingsLastSeenAt,
+#settingsEmail {
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.settings-row strong {
+  display: inline-flex;
+  align-items: baseline;
+  margin-left: 0;
+  font-weight: 600;
+  color: #98c379;
+}
+
+.settings-row strong::before {
+  content: '"';
+  color: #98c379;
+}
+
+.settings-row strong::after {
+  content: '"';
+  color: #98c379;
+}
+
+.status-chip--linked,
+.pending-badge--incoming {
+  border-color: var(--status-linked-border);
+  color: var(--status-linked-text);
+  background: var(--status-linked-bg);
+}
+
+.status-chip--not-linked {
+  border-color: var(--border);
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--card-muted) 80%, transparent);
+}
+
+.pending-badge--outgoing {
+  border-color: var(--pending-outgoing-border);
+  color: var(--pending-outgoing-text);
+  background: var(--pending-outgoing-bg);
+}
+
+.notice--error {
+  border-color: var(--notice-error-border);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.notice--success {
+  border-color: var(--toast-success-border);
+  color: var(--toast-success-text);
+  background: var(--toast-success-bg);
+}
+
+.status-chip,
+.pending-badge {
+  border-width: 1px;
+}

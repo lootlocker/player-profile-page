@@ -154,6 +154,29 @@ p {
   margin-bottom: var(--space-5);
 }
 
+.page-layout {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.page-layout__nav {
+  display: grid;
+  gap: 0;
+}
+
+.page-layout__nav .page-tabs {
+  margin-bottom: var(--space-3);
+}
+
+.page-layout__nav .page-tabs-divider {
+  margin-bottom: 0;
+}
+
+.page-layout__main {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .profile-summary {
   display: flex;
   align-items: center;
@@ -758,6 +781,33 @@ input:focus {
   font-weight: 600;
 }
 
+.settings-rows {
+  width: 100%;
+}
+
+.settings-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-row .stat__label {
+  font-weight: 600;
+}
+
+.settings-row strong {
+  font-weight: 600;
+  text-align: right;
+}
+
 .settings-divider {
   height: 1px;
   background: var(--border);
@@ -774,6 +824,10 @@ input:focus {
   display: flex;
   justify-content: flex-start;
   gap: var(--space-2);
+}
+
+#passwordResetStatus {
+  margin-top: var(--space-4);
 }
 
 .provider-list {
@@ -828,34 +882,54 @@ input:focus {
 
 .platform-table {
   width: 100%;
-  border-collapse: collapse;
 }
 
-.platform-table th,
-.platform-table td {
+.platform-table-header,
+.platform-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.social-table--friends .platform-table-header,
+.social-table--friends .platform-row {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.social-table--followers .platform-table-header,
+.social-table--followers .platform-row,
+.social-table--following .platform-table-header,
+.social-table--following .platform-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.platform-table-body {
+  display: grid;
+}
+
+.platform-cell {
   text-align: left;
   padding: var(--space-3);
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 
-.platform-table tbody tr:last-child td {
+.platform-table-body .platform-row:last-child .platform-cell {
   border-bottom: none;
 }
 
-.platform-table th {
+.platform-cell--header {
   color: var(--text-muted);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-.platform-table td:last-child,
-.platform-table th:last-child {
+.platform-cell--action {
   text-align: right;
 }
 
-.platform-table td.table-empty {
+.platform-cell.table-empty {
+  grid-column: 1 / -1;
   text-align: center;
 }
 

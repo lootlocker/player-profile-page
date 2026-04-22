@@ -24,6 +24,7 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `profile/platforms.html` platform linking status subpage
 - `styles/styles.css` visual theme and layout
 - `styles/custom.css` optional local overrides loaded after `styles/styles.css` (gitignored)
+- `styles/templates/*.css` starter theme templates you can copy into `styles/custom.css`
 - `styles/logo.svg` shared logo asset
 - `scripts/pages/auth.js` shared login/signup page logic
 - `scripts/pages/profile.js` profile page logic
@@ -68,6 +69,14 @@ For custom styling/behavior that should survive upstream updates, create these o
 
 They are already referenced by all pages and loaded automatically when present.
 Both files are listed in `.gitignore`, so teams can customize freely without accidentally pushing local overrides.
+
+You can also start from ready-made examples in `styles/templates/`:
+
+- `styles/templates/template-sunrise-citrus.css`
+- `styles/templates/template-darcular.css`
+- `styles/templates/template-carbon-electric.css`
+
+Copy any template contents into `styles/custom.css`, then tweak colors, spacing, radii, and fonts as needed.
 
 ## Endpoint Flow
 

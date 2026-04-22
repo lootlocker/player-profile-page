@@ -233,9 +233,9 @@ function showLoadingState() {
 
   if (els.platformsTableBody) {
     els.platformsTableBody.innerHTML = `
-      <tr>
-        <td colspan="3" class="muted">Loading platforms...</td>
-      </tr>
+      <div class="platform-row">
+        <div class="platform-cell table-empty muted">Loading platforms...</div>
+      </div>
     `;
   }
 }
@@ -407,9 +407,9 @@ function showPlatformsLoadingState() {
   }
 
   els.platformsTableBody.innerHTML = `
-      <tr>
-        <td colspan="3" class="muted table-empty">Loading platforms...</td>
-      </tr>
+      <div class="platform-row">
+        <div class="platform-cell muted table-empty">Loading platforms...</div>
+      </div>
     `;
 }
 
@@ -442,19 +442,19 @@ function renderPlatformRows(accounts) {
         ? `<span class="platform-name__icon provider-icon provider-icon--asset"><img class="provider-icon__img" src="${iconPath}" alt="" /></span>`
         : `<span class="platform-name__icon provider-icon"><span class="provider-icon__fallback">${fallback}</span></span>`;
       return `
-      <tr>
-        <td>
+      <div class="platform-row">
+        <div class="platform-cell">
           <span class="platform-name">${iconMarkup}<span>${escapeHtml(label)}</span></span>
-        </td>
-        <td>
+        </div>
+        <div class="platform-cell">
           <span class="status-chip ${linked ? "status-chip--linked" : "status-chip--not-linked"}">
             ${linked ? "Linked" : "Not linked"}
           </span>
-        </td>
-        <td>
+        </div>
+        <div class="platform-cell platform-cell--action">
           ${linked ? renderLinkedAction(platformId, canUnlink) : `<button class="button button--small" type="button" data-link-platform="${escapeHtml(platformId)}">Link</button>`}
-        </td>
-      </tr>
+        </div>
+      </div>
     `;
     })
     .join("");
