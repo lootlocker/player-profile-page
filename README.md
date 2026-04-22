@@ -23,6 +23,7 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `profile/following.html` following list subpage
 - `profile/platforms.html` platform linking status subpage
 - `styles/styles.css` visual theme and layout
+- `styles/custom.css` optional local overrides loaded after `styles/styles.css` (gitignored)
 - `styles/logo.svg` shared logo asset
 - `scripts/pages/auth.js` shared login/signup page logic
 - `scripts/pages/profile.js` profile page logic
@@ -33,6 +34,7 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `scripts/api/session.js` session token read/write helpers
 - `scripts/core/config.js` shared runtime config for all pages
 - `scripts/core/utils.js` shared utilities (cookies, notices, escaping, helpers)
+- `scripts/custom.js` optional local behavior overrides loaded before page scripts (gitignored)
 
 ## Configure
 
@@ -56,6 +58,16 @@ export const CONFIG = {
 Host the project on any local file server (not `file://`) so browser fetch behavior is consistent.
 
 Then open the server URL root (or `/login.html`).
+
+## Local Customization (Upgrade-Safe)
+
+For custom styling/behavior that should survive upstream updates, create these optional files locally:
+
+- `styles/custom.css`
+- `scripts/custom.js`
+
+They are already referenced by all pages and loaded automatically when present.
+Both files are listed in `.gitignore`, so teams can customize freely without accidentally pushing local overrides.
 
 ## Endpoint Flow
 

@@ -1,2 +1,4 @@
 server
 server.go
+styles/custom.css
+scripts/custom.js

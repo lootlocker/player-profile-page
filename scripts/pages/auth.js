@@ -35,6 +35,7 @@ const els = {
   emailInput: document.getElementById("emailInput"),
   passwordInput: document.getElementById("passwordInput"),
   confirmPasswordInput: document.getElementById("confirmPasswordInput"),
+  passwordToggleButtons: document.querySelectorAll("[data-password-toggle]"),
   rememberInput: document.getElementById("rememberInput"),
   authError: document.getElementById("authError"),
   globalError: document.getElementById("globalError"),
@@ -56,7 +57,27 @@ async function init() {
     }
   }
 
+  bindPasswordToggles();
   els.authForm.addEventListener("submit", handleSubmit);
+}
+
+function bindPasswordToggles() {
+  els.passwordToggleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const inputId = button.getAttribute("data-target-input");
+      const input = inputId ? document.getElementById(inputId) : null;
+      if (!input) {
+        return;
+      }
+
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      button.classList.toggle("is-visible", !showing);
+      const nextLabel = showing ? "Show password" : "Hide password";
+      button.setAttribute("aria-label", nextLabel);
+      button.setAttribute("title", nextLabel);
+    });
+  });
 }
 
 function handleThemeChange(event) {
