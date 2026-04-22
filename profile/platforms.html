@@ -192,6 +192,50 @@
           </div>
         </div>
       </section>
+
+      <section
+        id="unlinkModal"
+        class="modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="unlinkModalTitle"
+      >
+        <div class="modal__card">
+          <button
+            id="unlinkCloseButton"
+            class="modal__close button button--ghost button--small"
+            type="button"
+            aria-label="Close unlink modal"
+          >
+            ×
+          </button>
+          <h3 id="unlinkModalTitle">Unlink Account</h3>
+          <p id="unlinkConfirmMessage" class="muted">
+            Are you sure you want to unlink this account?
+          </p>
+          <p
+            id="unlinkStatus"
+            class="notice notice--error hidden"
+            role="alert"
+          ></p>
+          <div class="modal__actions">
+            <button
+              id="unlinkCancelButton"
+              class="button button--ghost button--small"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              id="unlinkConfirmButton"
+              class="button button--small"
+              type="button"
+            >
+              Unlink
+            </button>
+          </div>
+        </div>
+      </section>
     </main>
 
     <script type="module" src="../scripts/pages/platforms.js"></script>

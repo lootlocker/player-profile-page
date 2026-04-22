@@ -12,6 +12,25 @@
   --stat-hover-bg: #eef3ff;
   --danger: #b42318;
   --danger-soft: #fff2f0;
+  --button-text: #ffffff;
+  --toast-shadow: rgba(15, 23, 32, 0.15);
+  --toast-success-bg: #ecfdf3;
+  --toast-success-border: #86efac;
+  --toast-success-text: #14532d;
+  --notice-error-border: #f5c5c0;
+  --provider-icon-text: #ffffff;
+  --provider-icon-bg: #334155;
+  --status-linked-border: #80d6a0;
+  --status-linked-bg: #e7f8ee;
+  --status-linked-text: #14532d;
+  --pending-incoming-border: #80d6a0;
+  --pending-incoming-bg: #e7f8ee;
+  --pending-incoming-text: #14532d;
+  --pending-outgoing-border: #f6c164;
+  --pending-outgoing-bg: #fff4df;
+  --pending-outgoing-text: #7c3d00;
+  --modal-overlay: rgba(15, 23, 32, 0.5);
+  --modal-qr-bg: #ffffff;
   --radius: 12px;
   --radius-sm: 8px;
   --space-1: 0.25rem;
@@ -39,6 +58,25 @@
   --stat-hover-bg: #1c2a3f;
   --danger: #ff8b82;
   --danger-soft: #3a1d21;
+  --button-text: #ffffff;
+  --toast-shadow: rgba(0, 0, 0, 0.45);
+  --toast-success-bg: #133623;
+  --toast-success-border: #4ade80;
+  --toast-success-text: #dcfce7;
+  --notice-error-border: #a15a56;
+  --provider-icon-text: #ffffff;
+  --provider-icon-bg: #3a485d;
+  --status-linked-border: #65d393;
+  --status-linked-bg: #163726;
+  --status-linked-text: #c8f5d9;
+  --pending-incoming-border: #65d393;
+  --pending-incoming-bg: #163726;
+  --pending-incoming-text: #c8f5d9;
+  --pending-outgoing-border: #fbbf24;
+  --pending-outgoing-bg: #3f2a07;
+  --pending-outgoing-text: #fde68a;
+  --modal-overlay: rgba(3, 8, 14, 0.62);
+  --modal-qr-bg: #ffffff;
   --shadow: none;
 }
 
@@ -194,19 +232,13 @@ p {
   padding: var(--space-2) var(--space-3);
   font-size: 0.86rem;
   z-index: 30;
-  box-shadow: 0 8px 20px rgba(15, 23, 32, 0.15);
+  box-shadow: 0 8px 20px var(--toast-shadow);
 }
 
 .top-toast.notice--success {
-  background: #ecfdf3;
-  border-color: #86efac;
-  color: #14532d;
-}
-
-:root.theme-dark .top-toast.notice--success {
-  background: #133623;
-  border-color: #4ade80;
-  color: #dcfce7;
+  background: var(--toast-success-bg);
+  border-color: var(--toast-success-border);
+  color: var(--toast-success-text);
 }
 
 .topbar-actions {
@@ -426,7 +458,7 @@ input:focus {
 .button {
   border: 1px solid var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--button-text);
   border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-4);
   font: inherit;
@@ -464,12 +496,8 @@ input:focus {
 
 .notice--error {
   background: var(--danger-soft);
-  border-color: #f5c5c0;
+  border-color: var(--notice-error-border);
   color: var(--danger);
-}
-
-:root.theme-dark .notice--error {
-  border-color: #a15a56;
 }
 
 .notice--success {
@@ -669,8 +697,8 @@ input:focus {
   justify-content: center;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #fff;
-  background: #334155;
+  color: var(--provider-icon-text);
+  background: var(--provider-icon-bg);
 }
 
 .provider-icon__img {
@@ -757,9 +785,9 @@ input:focus {
 }
 
 .status-chip--linked {
-  border-color: color-mix(in srgb, #22c55e 50%, var(--border));
-  background: color-mix(in srgb, #22c55e 14%, transparent);
-  color: color-mix(in srgb, #14532d 80%, var(--text));
+  border-color: var(--status-linked-border);
+  background: var(--status-linked-bg);
+  color: var(--status-linked-text);
 }
 
 .status-chip--not-linked {
@@ -825,21 +853,15 @@ input:focus {
 }
 
 .pending-badge--incoming {
-  border-color: color-mix(in srgb, #22c55e 50%, var(--border));
-  background: color-mix(in srgb, #22c55e 14%, transparent);
-  color: color-mix(in srgb, #14532d 80%, var(--text));
+  border-color: var(--pending-incoming-border);
+  background: var(--pending-incoming-bg);
+  color: var(--pending-incoming-text);
 }
 
 .pending-badge--outgoing {
-  border-color: color-mix(in srgb, #f59e0b 58%, var(--border));
-  background: color-mix(in srgb, #f59e0b 16%, transparent);
-  color: color-mix(in srgb, #78350f 80%, var(--text));
-}
-
-:root.theme-dark .pending-badge--outgoing {
-  border-color: #fbbf24;
-  background: #3f2a07;
-  color: #fde68a;
+  border-color: var(--pending-outgoing-border);
+  background: var(--pending-outgoing-bg);
+  color: var(--pending-outgoing-text);
 }
 
 .pending-requests {
@@ -898,7 +920,7 @@ input:focus {
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 32, 0.5);
+  background: var(--modal-overlay);
   display: grid;
   place-items: center;
   padding: var(--space-4);
@@ -922,7 +944,7 @@ input:focus {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   justify-self: center;
-  background: #fff;
+  background: var(--modal-qr-bg);
 }
 
 .modal__close {

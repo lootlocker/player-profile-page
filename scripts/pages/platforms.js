@@ -66,7 +66,7 @@ const PLATFORM_ICON_BY_MODE = {
   },
 };
 
-const PLATFORM_KEYS = [
+const DEFAULT_PLATFORM_KEYS = [
   "credentials",
   "steam",
   "discord",
@@ -82,8 +82,12 @@ const state = {
   sessionToken: getSessionToken(),
   player: null,
   connectedAccounts: [],
+  platformProviders: [],
+  platformsLoading: true,
+  gameInfo: null,
   connectLease: null,
   connectProvider: null,
+  pendingUnlinkPlatform: null,
   copyUidStatusTimerId: null,
   copyUidButtonTimerId: null,
 };
@@ -107,6 +111,12 @@ const els = {
   connectStatus: document.getElementById("connectStatus"),
   connectDoneButton: document.getElementById("connectDoneButton"),
   connectCloseButton: document.getElementById("connectCloseButton"),
+  unlinkModal: document.getElementById("unlinkModal"),
+  unlinkConfirmMessage: document.getElementById("unlinkConfirmMessage"),
+  unlinkStatus: document.getElementById("unlinkStatus"),
+  unlinkConfirmButton: document.getElementById("unlinkConfirmButton"),
+  unlinkCancelButton: document.getElementById("unlinkCancelButton"),
+  unlinkCloseButton: document.getElementById("unlinkCloseButton"),
   brandLogo: document.getElementById("brandLogo"),
   themeToggleButton: document.getElementById("themeToggleButton"),
 };
@@ -130,12 +140,21 @@ function bindEvents() {
   els.copyUidButton?.addEventListener("click", handleCopyUid);
   els.connectDoneButton?.addEventListener("click", confirmConnectedAccount);
   els.connectCloseButton?.addEventListener("click", closeConnectModal);
+  els.unlinkConfirmButton?.addEventListener("click", confirmUnlinkPlatform);
+  els.unlinkCancelButton?.addEventListener("click", closeUnlinkModal);
+  els.unlinkCloseButton?.addEventListener("click", closeUnlinkModal);
   els.platformsTableBody?.addEventListener("click", handlePlatformTableClick);
   THEME_QUERY.addEventListener("change", handleThemeChange);
 
   els.connectModal?.addEventListener("click", (event) => {
     if (event.target === els.connectModal) {
       closeConnectModal();
+    }
+  });
+
+  els.unlinkModal?.addEventListener("click", (event) => {
+    if (event.target === els.unlinkModal) {
+      closeUnlinkModal();
     }
   });
 }
@@ -224,11 +243,27 @@ function showLoadingState() {
 async function hydratePage() {
   clearNotice(els.globalError);
   clearNotice(els.platformsError);
+  state.platformsLoading = true;
+  renderPlatformRows(state.connectedAccounts);
 
   try {
     const playerInfo = await api.getInfoFromSession();
     state.player = playerInfo.info;
     renderProfile(state.player);
+
+    const providersResult = await Promise.resolve(loadPlatformProviders()).then(
+      (value) => ({ status: "fulfilled", value }),
+      (reason) => ({ status: "rejected", reason }),
+    );
+
+    if (providersResult.status === "fulfilled") {
+      state.platformProviders = ensureCredentialsProvider(
+        providersResult.value,
+      );
+    } else {
+      state.platformProviders = buildDefaultPlatformProviders();
+      showNotice(els.platformsError, readableError(providersResult.reason));
+    }
 
     const accountsResult = await Promise.resolve(
       api.listConnectedAccounts(),
@@ -239,15 +274,190 @@ async function hydratePage() {
 
     if (accountsResult.status === "fulfilled") {
       state.connectedAccounts = accountsResult.value.connected_accounts || [];
-      renderPlatformRows(state.connectedAccounts);
     } else {
       state.connectedAccounts = [];
-      renderPlatformRows([]);
       showNotice(els.platformsError, readableError(accountsResult.reason));
     }
+
+    state.platformsLoading = false;
+    renderPlatformRows(state.connectedAccounts);
   } catch (error) {
+    state.platformsLoading = false;
     handlePageError(error);
   }
+}
+
+async function loadPlatformProviders() {
+  const gameInfoResult = await api.getGameInfo();
+  const info = gameInfoResult?.info || null;
+  const titleId = info?.title_id;
+  const environmentId = info?.environment_id;
+
+  if (!titleId || !environmentId) {
+    throw new Error("Missing title or environment ID for providers.");
+  }
+
+  state.gameInfo = info;
+  const authConfig = await api.getExternalAuthenticationConfig(
+    titleId,
+    environmentId,
+  );
+  const identityProviders = Array.isArray(authConfig?.identity_providers)
+    ? authConfig.identity_providers
+    : [];
+
+  const providers = identityProviders
+    .map((provider) => {
+      const id = String(provider?.id || "").trim();
+      if (!id) {
+        return null;
+      }
+
+      const name = String(provider?.name || "").trim();
+      return {
+        id,
+        name,
+      };
+    })
+    .filter(Boolean);
+
+  return providers.length ? providers : buildDefaultPlatformProviders();
+}
+
+function buildDefaultPlatformProviders() {
+  return ensureCredentialsProvider(
+    DEFAULT_PLATFORM_KEYS.map((id) => ({
+      id,
+      name: PLATFORM_LABELS[id] || formatProviderLabel(id),
+    })),
+  );
+}
+
+function ensureCredentialsProvider(providers) {
+  const providerList = Array.isArray(providers) ? providers : [];
+  const hasCredentials = providerList.some(
+    (provider) => normalizeProviderKey(provider?.id) === "credentials",
+  );
+
+  if (hasCredentials) {
+    return providerList;
+  }
+
+  return [
+    {
+      id: "credentials",
+      name: PLATFORM_LABELS.credentials,
+    },
+    ...providerList,
+  ];
+}
+
+function buildRenderableProviders(accounts) {
+  const configuredProviders = state.platformProviders.length
+    ? state.platformProviders
+    : buildDefaultPlatformProviders();
+  const providersByKey = new Map();
+
+  configuredProviders.forEach((provider) => {
+    const id = String(provider?.id || "").trim();
+    if (!id) {
+      return;
+    }
+
+    const normalizedKey = normalizeProviderKey(id);
+    providersByKey.set(normalizedKey, {
+      id,
+      name: String(provider?.name || "").trim(),
+    });
+  });
+
+  accounts.forEach((account) => {
+    const accountProvider = String(account?.provider || "").trim();
+    if (!accountProvider) {
+      return;
+    }
+
+    const normalizedKey = normalizeProviderKey(accountProvider);
+    if (providersByKey.has(normalizedKey)) {
+      return;
+    }
+
+    providersByKey.set(normalizedKey, {
+      id: normalizedKey,
+      name:
+        PLATFORM_LABELS[normalizedKey] || formatProviderLabel(normalizedKey),
+    });
+  });
+
+  ensureCredentialsProvider(Array.from(providersByKey.values())).forEach(
+    (provider) => {
+      const normalizedKey = normalizeProviderKey(provider.id);
+      if (!providersByKey.has(normalizedKey)) {
+        providersByKey.set(normalizedKey, provider);
+      }
+    },
+  );
+
+  return Array.from(providersByKey.values());
+}
+
+function showPlatformsLoadingState() {
+  if (!els.platformsTableBody) {
+    return;
+  }
+
+  els.platformsTableBody.innerHTML = `
+      <tr>
+        <td colspan="3" class="muted table-empty">Loading platforms...</td>
+      </tr>
+    `;
+}
+
+function renderPlatformRows(accounts) {
+  if (!els.platformsTableBody) {
+    return;
+  }
+
+  if (state.platformsLoading) {
+    showPlatformsLoadingState();
+    return;
+  }
+
+  const linkedProviders = new Set(
+    accounts.map((account) => normalizeProviderKey(account.provider)),
+  );
+  const providers = buildRenderableProviders(accounts);
+
+  const mode = getThemeMode();
+  els.platformsTableBody.innerHTML = providers
+    .map((provider) => {
+      const platformId = provider.id;
+      const normalizedKey = normalizeProviderKey(platformId);
+      const label = getPlatformLabel(platformId, provider.name);
+      const linked = linkedProviders.has(normalizedKey);
+      const canUnlink = normalizedKey !== "credentials";
+      const iconPath = PLATFORM_ICON_BY_MODE[normalizedKey]?.[mode] || null;
+      const fallback = escapeHtml(label.slice(0, 2).toUpperCase());
+      const iconMarkup = iconPath
+        ? `<span class="platform-name__icon provider-icon provider-icon--asset"><img class="provider-icon__img" src="${iconPath}" alt="" /></span>`
+        : `<span class="platform-name__icon provider-icon"><span class="provider-icon__fallback">${fallback}</span></span>`;
+      return `
+      <tr>
+        <td>
+          <span class="platform-name">${iconMarkup}<span>${escapeHtml(label)}</span></span>
+        </td>
+        <td>
+          <span class="status-chip ${linked ? "status-chip--linked" : "status-chip--not-linked"}">
+            ${linked ? "Linked" : "Not linked"}
+          </span>
+        </td>
+        <td>
+          ${linked ? renderLinkedAction(platformId, canUnlink) : `<button class="button button--small" type="button" data-link-platform="${escapeHtml(platformId)}">Link</button>`}
+        </td>
+      </tr>
+    `;
+    })
+    .join("");
 }
 
 function handlePageError(error) {
@@ -271,43 +481,6 @@ function renderProfile(profile) {
   }
   resetCopyUidButtonIcon();
   clearCopyUidStatus();
-}
-
-function renderPlatformRows(accounts) {
-  if (!els.platformsTableBody) {
-    return;
-  }
-
-  const linkedProviders = new Set(
-    accounts.map((account) => normalizeProviderKey(account.provider)),
-  );
-
-  const mode = getThemeMode();
-  els.platformsTableBody.innerHTML = PLATFORM_KEYS.map((platformKey) => {
-    const label = PLATFORM_LABELS[platformKey] || platformKey;
-    const linked = linkedProviders.has(platformKey);
-    const canUnlink = platformKey !== "credentials";
-    const iconPath = PLATFORM_ICON_BY_MODE[platformKey]?.[mode] || null;
-    const fallback = escapeHtml(label.slice(0, 2).toUpperCase());
-    const iconMarkup = iconPath
-      ? `<span class="platform-name__icon provider-icon provider-icon--asset"><img class="provider-icon__img" src="${iconPath}" alt="" /></span>`
-      : `<span class="platform-name__icon provider-icon"><span class="provider-icon__fallback">${fallback}</span></span>`;
-    return `
-      <tr>
-        <td>
-          <span class="platform-name">${iconMarkup}<span>${escapeHtml(label)}</span></span>
-        </td>
-        <td>
-          <span class="status-chip ${linked ? "status-chip--linked" : "status-chip--not-linked"}">
-            ${linked ? "Linked" : "Not linked"}
-          </span>
-        </td>
-        <td>
-          ${linked ? renderLinkedAction(platformKey, canUnlink) : `<button class="button button--small" type="button" data-link-platform="${escapeHtml(platformKey)}">Link</button>`}
-        </td>
-      </tr>
-    `;
-  }).join("");
 }
 
 function renderLinkedAction(platformKey, canUnlink) {
@@ -334,7 +507,65 @@ function handlePlatformTableClick(event) {
 
   const unlinkPlatformKey = button.getAttribute("data-unlink-platform");
   if (unlinkPlatformKey) {
-    unlinkPlatform(unlinkPlatformKey, button);
+    openUnlinkModal(unlinkPlatformKey);
+  }
+}
+
+function openUnlinkModal(platformKey) {
+  if (!platformKey) {
+    showNotice(els.platformsError, "Missing platform provider.");
+    return;
+  }
+
+  const platformLabel = getPlatformLabel(platformKey);
+  state.pendingUnlinkPlatform = platformKey;
+  clearNotice(els.unlinkStatus);
+  if (els.unlinkConfirmButton) {
+    els.unlinkConfirmButton.disabled = false;
+    els.unlinkConfirmButton.textContent = "Unlink";
+  }
+
+  if (els.unlinkConfirmMessage) {
+    els.unlinkConfirmMessage.textContent = `Unlink ${platformLabel}? You can link it again later.`;
+  }
+
+  els.unlinkModal?.classList.remove("hidden");
+}
+
+function closeUnlinkModal() {
+  els.unlinkModal?.classList.add("hidden");
+  clearNotice(els.unlinkStatus);
+  state.pendingUnlinkPlatform = null;
+
+  if (els.unlinkConfirmButton) {
+    els.unlinkConfirmButton.disabled = false;
+    els.unlinkConfirmButton.textContent = "Unlink";
+  }
+}
+
+async function confirmUnlinkPlatform() {
+  if (!state.pendingUnlinkPlatform) {
+    showNotice(els.unlinkStatus, "No platform selected to unlink.");
+    return;
+  }
+
+  clearNotice(els.unlinkStatus);
+
+  if (els.unlinkConfirmButton) {
+    els.unlinkConfirmButton.disabled = true;
+    els.unlinkConfirmButton.textContent = "Unlinking...";
+  }
+
+  const unlinked = await unlinkPlatform(state.pendingUnlinkPlatform);
+
+  if (unlinked) {
+    closeUnlinkModal();
+    return;
+  }
+
+  if (els.unlinkConfirmButton) {
+    els.unlinkConfirmButton.disabled = false;
+    els.unlinkConfirmButton.textContent = "Unlink";
   }
 }
 
@@ -344,6 +575,28 @@ function normalizeProviderKey(provider) {
     return "epic_games";
   }
   return key;
+}
+
+function getPlatformLabel(providerId, fallbackName = "") {
+  const normalizedKey = normalizeProviderKey(providerId);
+  const providerFromConfig = state.platformProviders.find(
+    (provider) => provider.id === providerId,
+  );
+
+  return (
+    providerFromConfig?.name ||
+    fallbackName ||
+    PLATFORM_LABELS[normalizedKey] ||
+    formatProviderLabel(providerId)
+  );
+}
+
+function formatProviderLabel(providerId) {
+  return String(providerId || "Provider")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 async function openConnectModal(platformKey) {
@@ -460,33 +713,32 @@ function appendProviderQuery(url, provider) {
   }
 }
 
-async function unlinkPlatform(platformKey, button) {
+async function unlinkPlatform(platformKey) {
   if (platformKey === "credentials") {
     showNotice(els.platformsError, "Credentials cannot be unlinked.");
-    return;
+    return false;
   }
 
   clearNotice(els.platformsError);
+  clearNotice(els.unlinkStatus);
   const provider = toDetachProvider(platformKey);
-  const originalText = button.textContent;
-  button.disabled = true;
-  button.textContent = "Unlinking...";
 
   try {
-    await api.detachProvider(provider);
+    await api.deleteProvider(provider);
     const result = await api.listConnectedAccounts();
     state.connectedAccounts = result.connected_accounts || [];
     renderPlatformRows(state.connectedAccounts);
+    return true;
   } catch (error) {
     if (isSessionError(error)) {
       signOut();
-      return;
+      return false;
     }
 
-    showNotice(els.platformsError, readableError(error));
-  } finally {
-    button.disabled = false;
-    button.textContent = originalText;
+    const message = readableError(error);
+    showNotice(els.platformsError, message);
+    showNotice(els.unlinkStatus, message);
+    return false;
   }
 }
 

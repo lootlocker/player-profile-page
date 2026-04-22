@@ -112,6 +112,30 @@ export function createApiClient(config, getSessionToken) {
       });
     },
 
+    getGameInfo() {
+      return apiRequest("/game/info/v1", {
+        method: "POST",
+        body: {
+          api_key: config.gameKey,
+        },
+      });
+    },
+
+    getExternalAuthenticationConfig(titleId, environmentId) {
+      const query = new URLSearchParams({
+        title_id: String(titleId || ""),
+        environment_id: String(environmentId || ""),
+      });
+
+      return apiRequest(
+        `/client/v3/config/external-authentication?${query.toString()}`,
+        {
+          method: "GET",
+          tokenRequired: false,
+        },
+      );
+    },
+
     getInfoFromSession() {
       return apiRequest("/game/player/hazy-hammock/v1/info");
     },
@@ -137,11 +161,13 @@ export function createApiClient(config, getSessionToken) {
       });
     },
 
-    detachProvider(provider) {
-      return apiRequest("/game/v1/connected-accounts/detach", {
-        method: "PUT",
-        body: { provider },
-      });
+    deleteProvider(provider) {
+      return apiRequest(
+        `/game/player/providers/${encodeURIComponent(provider)}`,
+        {
+          method: "DELETE",
+        },
+      );
     },
 
     listFriends() {
