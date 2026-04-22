@@ -353,19 +353,23 @@ h3,
   position: absolute;
 }
 
-.settings-row:nth-child(1) .stat__label::before {
+.settings-row:nth-of-type(1) .stat__label::before {
+  content: "PLAYER_NAME";
+}
+
+.settings-row:nth-of-type(2) .stat__label::before {
   content: "PUBLIC_UID";
 }
 
-.settings-row:nth-child(2) .stat__label::before {
+.settings-row:nth-of-type(3) .stat__label::before {
   content: "JOINED";
 }
 
-.settings-row:nth-child(3) .stat__label::before {
+.settings-row:nth-of-type(4) .stat__label::before {
   content: "LAST_SEEN";
 }
 
-.settings-row:nth-child(4) .stat__label::before {
+.settings-row:nth-of-type(5) .stat__label::before {
   content: "EMAIL";
 }
 
@@ -401,6 +405,66 @@ h3,
 .settings-row strong::after {
   content: '"';
   color: #98c379;
+}
+
+.settings-row .player-name-display {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin-left: 0.5ch;
+}
+
+.settings-row .player-name-inline {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.settings-row .player-name-form {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.settings-row .player-name-form input {
+  width: 18ch;
+  min-width: 12ch;
+  max-width: 32ch;
+  padding: 0.28rem 0.45rem;
+  border-radius: 2px;
+}
+
+.settings-row .icon-button {
+  width: 1.55rem;
+  min-width: 1.55rem;
+  height: 1.55rem;
+  min-height: 1.55rem;
+  border-radius: 2px;
+  border-color: color-mix(in srgb, var(--border) 88%, #232425);
+  background: #3a3d3f;
+}
+
+.settings-row .icon-button .ui-icon {
+  width: 0.78rem;
+  height: 0.78rem;
+}
+
+.settings-row .icon-button--confirm {
+  color: #a9b7c6;
+  border-color: #4f6b80;
+  background: #36424d;
+}
+
+.settings-row .icon-button--cancel {
+  color: #cc6666;
+  border-color: #6d4f4f;
+  background: #4a3535;
+}
+
+#playerNameStatus {
+  margin: 0.45rem 0 0.55rem;
+  margin-left: calc(3ch + 1px);
+  width: fit-content;
 }
 
 /* 7) Status and notice styling ------------------------------------------- */
