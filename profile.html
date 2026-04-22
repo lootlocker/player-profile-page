@@ -147,6 +147,23 @@
 
               <div class="settings-rows" aria-label="Account details">
                 <div class="settings-row">
+                  <span class="stat__label">Player Name</span>
+                  <div class="player-name-display">
+                    <strong id="settingsPlayerName">-</strong>
+                    <button id="playerNameEditButton" class="button button--ghost button--small" type="button">Edit</button>
+                  </div>
+                </div>
+                <div id="playerNameEditRow" class="settings-row hidden">
+                  <form id="playerNameForm" class="player-name-form">
+                    <input id="playerNameInput" type="text" placeholder="Enter player name" maxlength="128" autocomplete="off" />
+                    <div class="settings-form__actions">
+                      <button id="playerNameSaveButton" class="button button--small" type="submit">Save</button>
+                      <button id="playerNameCancelButton" class="button button--ghost button--small" type="button">Cancel</button>
+                    </div>
+                  </form>
+                  <p id="playerNameStatus" class="notice hidden" role="status" aria-live="polite"></p>
+                </div>
+                <div class="settings-row">
                   <span class="stat__label">Public UID</span>
                   <strong id="settingsPublicUid">-</strong>
                 </div>
