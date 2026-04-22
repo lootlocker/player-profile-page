@@ -22,10 +22,7 @@
       })();
     </script>
     <link rel="stylesheet" href="../styles/styles.css" />
-    <link
-      rel="stylesheet"
-      href="../styles/templates/template-darcular.css"
-    />
+    <link rel="stylesheet" href="../styles/custom.css" />
   </head>
   <body data-social-type="following" data-social-title="Following">
     <main class="shell">
@@ -131,6 +128,7 @@
               ></p>
               <div class="platform-table-wrap">
                 <div
+                  id="followingTable"
                   class="platform-table social-table social-table--following"
                   aria-label="Following list"
                 >
@@ -138,7 +136,10 @@
                     <div class="platform-cell platform-cell--header">
                       Player
                     </div>
-                    <div class="platform-cell platform-cell--header">
+                    <div
+                      class="platform-cell platform-cell--header header-env-key"
+                      data-env-key="PUBLIC_UID"
+                    >
                       Public UID
                     </div>
                   </div>

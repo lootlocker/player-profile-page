@@ -6,10 +6,12 @@
 
   Section guide:
   1) Theme tokens
-  2) Typography + page atmosphere
-  3) Buttons + tabs treatment
-  4) Content card rhythm
-  5) Terminal row blocks
+  2) Global type + layout shell
+  3) Buttons + tabs
+  4) Content flattening
+  5) Table styling + color mapping
+  6) Settings .env block styling
+  7) Status and notice styling
 */
 
 /* 1) Theme tokens --------------------------------------------------------- */
@@ -48,6 +50,7 @@
   --space-4: 0.95rem;
   --space-5: 1.2rem;
   --shadow: none;
+  --darcular-divider: color-mix(in srgb, var(--border) 85%, var(--bg));
 }
 
 :root.theme-dark {
@@ -80,6 +83,7 @@
   --toast-success-border: #566a56;
   --toast-success-text: #b7d6bb;
   --shadow: none;
+  --darcular-divider: color-mix(in srgb, var(--border) 85%, var(--bg));
 }
 
 :root,
@@ -88,7 +92,7 @@
   color-scheme: dark;
 }
 
-/* 2) Typography + page atmosphere ---------------------------------------- */
+/* 2) Global type + layout shell ------------------------------------------ */
 body {
   font-family: "JetBrains Mono", "Consolas", "Droid Sans Mono", "Menlo", "Monaco", "Courier New", monospace;
   background-image: none;
@@ -111,20 +115,6 @@ h3 {
   font-family: "JetBrains Mono", "Consolas", "Droid Sans Mono", "Menlo", "Monaco", "Courier New", monospace;
 }
 
-body::before {
-  content: none;
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    180deg,
-    color-mix(in srgb, #ffffff 7%, transparent) 0 1px,
-    transparent 1px 3px
-  );
-  opacity: 0.12;
-  z-index: 0;
-}
-
 .shell {
   position: relative;
   z-index: 1;
@@ -138,17 +128,26 @@ body::before {
   margin: 0 calc(-1 * var(--space-8));
 }
 
-/* 3) Buttons + tabs treatment -------------------------------------------- */
+.profile-uid-row {
+  margin-top: -0.5rem;
+}
+
+.avatar {
+  border-radius: 0;
+}
+
+/* 3) Buttons + tabs ------------------------------------------------------- */
 .button {
   border-radius: 3px;
   letter-spacing: 0;
   text-transform: none;
   font-weight: 500;
   box-shadow: none;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   padding: var(--space-2) var(--space-8);
   background: #385781;
-  border-color: #4E6D8E;
+  border-color: #4e6d8e;
+  color: var(--text);
   transition: background-color 0.12s ease, border-color 0.12s ease;
 }
 
@@ -166,11 +165,14 @@ body::before {
   border-radius: 0;
   font-size: 0.86rem;
   font-weight: 500;
-  letter-spacing: 0;
+  letter-spacing: 0.1em;
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
   text-transform: uppercase;
+  padding: var(--space-2) 0;
+  margin: 0 var(--space-4);
+  color: var(--text);
 }
 
 .page-tab-link.is-active {
@@ -193,7 +195,7 @@ body::before {
   display: none !important;
 }
 
-/* 4) Content panel flattening --------------------------------------------- */
+/* 4) Content flattening --------------------------------------------------- */
 .content {
   gap: var(--space-5);
 }
@@ -205,16 +207,32 @@ body::before {
   padding: 0;
 }
 
-.setting-item {
-  border-width: 2px;
-  background: color-mix(in srgb, var(--accent) 7%, var(--card-muted));
+/* 5) Table styling + color mapping --------------------------------------- */
+.platform-table-header .platform-cell {
+  border-bottom: 1px solid var(--darcular-divider);
 }
 
-/* 5) Terminal row blocks -------------------------------------------------- */
-.platform-table-header .platform-cell--header {
+.platform-cell--header {
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: color-mix(in srgb, var(--text-muted) 78%, var(--text));
+  font-size: 0.86rem;
+  color: var(--text-muted) !important;
+  padding: var(--space-3) 0;
+}
+
+.platform-cell--header.header-env-key {
+  position: relative;
+  color: transparent;
+}
+
+.platform-cell--header.header-env-key::before {
+  content: attr(data-env-key);
+  color: var(--text-muted);
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  pointer-events: none;
 }
 
 .settings-row,
@@ -231,44 +249,46 @@ body::before {
 
 .platform-row .platform-cell,
 .settings-row {
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, var(--bg));
+  border-bottom: 1px solid var(--darcular-divider);
+  font-weight: 500;
 }
 
 .platform-row .platform-cell {
   padding: var(--space-2) 0;
-}
-
-.settings-row {
-  padding: 0;
   display: flex;
-  align-items: baseline;
-  justify-content: flex-start;
-  gap: 0;
+  align-items: center;
 }
 
-.settings-rows {
-  counter-reset: env-line;
+.platform-row .platform-cell:last-child {
+  justify-content: flex-end;
+  text-align: right;
 }
 
-.settings-row {
-  counter-increment: env-line;
+.platform-row .platform-cell.table-empty {
+  justify-content: center;
+  text-align: center;
+  color: var(--text-muted) !important;
 }
 
-.platform-name,
-.stat__label,
-.settings-row strong {
-  color: var(--text);
+.platform-cell strong,
+.platform-name {
+  color: #a9b7c6;
+}
+
+.platform-row .platform-cell:first-child,
+.platform-row .platform-cell:first-child .platform-name,
+.platform-row .platform-cell:first-child strong {
+  color: #ffffff;
+}
+
+.platform-row .platform-cell:not(:first-child) {
+  color: #98c379;
 }
 
 .muted,
 .platform-cell.muted {
   color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.button,
-.page-tab-link {
-  color: var(--text);
+  font-size: 0.86rem;
 }
 
 h1,
@@ -288,8 +308,21 @@ h3,
   color: #ffc66d;
 }
 
-.stat__label,
-.platform-cell--header {
+/* 6) Settings .env block styling ----------------------------------------- */
+.settings-rows {
+  counter-reset: env-line;
+}
+
+.settings-row {
+  counter-increment: env-line;
+  padding: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.stat__label {
   color: #cc7832;
 }
 
@@ -309,15 +342,14 @@ h3,
   display: inline-block;
   min-width: 2ch;
   text-align: right;
-  padding-right: 1ch;
   padding: var(--space-1) 1ch var(--space-1) 0;
-  border-right: 1px solid color-mix(in srgb, var(--border) 85%, var(--bg));
+  border-right: 1px solid var(--darcular-divider);
 }
 
 .settings-row .stat__label::before {
   color: #ffffff;
   letter-spacing: 0.04em;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   position: absolute;
 }
 
@@ -343,19 +375,13 @@ h3,
   margin: 0 0 0 0.5ch;
 }
 
-.platform-cell strong,
-.platform-row .platform-cell:first-child,
-.platform-name {
-  color: #a9b7c6;
-}
-
 .settings-row .stat__label,
 .settings-row strong,
 #settingsPublicUid,
 #settingsJoinedAt,
 #settingsLastSeenAt,
 #settingsEmail {
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   line-height: 1.35;
 }
 
@@ -377,6 +403,7 @@ h3,
   color: #98c379;
 }
 
+/* 7) Status and notice styling ------------------------------------------- */
 .status-chip--linked,
 .pending-badge--incoming {
   border-color: var(--status-linked-border);
@@ -394,6 +421,10 @@ h3,
   border-color: var(--pending-outgoing-border);
   color: var(--pending-outgoing-text);
   background: var(--pending-outgoing-bg);
+}
+
+.notice {
+  font-size: 0.86rem;
 }
 
 .notice--error {
