@@ -1,7 +1,7 @@
-import { CONFIG } from "../core/config.js";
+import { CONFIG } from "../config.js";
 
 export function validateConfig() {
-  return Boolean(CONFIG.gameKey && CONFIG.domainKey);
+  return Boolean(CONFIG.apiBase && CONFIG.gameKey && CONFIG.domainKey);
 }
 
 export async function createSessionFromCredentials(

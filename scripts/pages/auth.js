@@ -4,18 +4,22 @@ import {
   signUpAndCreateSession,
   validateConfig,
 } from "../api/auth.js";
-import { CONFIG } from "../core/config.js";
+import { CONFIG } from "../config.js";
 import {
   clearSessionToken,
   getSessionToken,
+  saveAccountEmail,
   saveSessionToken,
 } from "../api/session.js";
 import {
+  applyCustomScripts,
+  applyCustomStylesheets,
   clearNotice,
+  ensureRequiredConfigOrRenderError,
   getCookie,
   readableError,
   showNotice,
-} from "../core/utils.js";
+} from "../utils.js";
 
 const mode = document.body.dataset.authMode === "signup" ? "signup" : "login";
 const isSignUp = mode === "signup";
@@ -43,6 +47,12 @@ const els = {
 };
 
 async function init() {
+  if (!ensureRequiredConfigOrRenderError(CONFIG)) {
+    return;
+  }
+
+  applyCustomScripts(CONFIG.customScripts);
+  applyCustomStylesheets(CONFIG.customStylesheets);
   syncTheme(resolveInitialTheme());
   THEME_QUERY.addEventListener("change", handleThemeChange);
 
@@ -128,7 +138,7 @@ async function handleSubmit(event) {
   if (!validateConfig()) {
     showNotice(
       els.authError,
-      "Set gameKey and domainKey in scripts/core/config.js.",
+      "Set apiBase, gameKey, and domainKey in scripts/custom.js.",
     );
     return;
   }
@@ -160,6 +170,7 @@ async function handleSubmit(event) {
       : await createSessionFromCredentials(api, email, password, remember);
 
     saveSessionToken(sessionToken, remember);
+    saveAccountEmail(email, remember);
     window.location.href = "profile.html";
   } catch (error) {
     showNotice(els.authError, readableError(error));

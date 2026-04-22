@@ -2,3 +2,5 @@ server
 server.go
 styles/custom.css
 scripts/custom.js
+styles/assets/custom/*
+!styles/assets/custom/README.md

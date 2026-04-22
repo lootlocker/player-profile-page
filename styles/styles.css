@@ -1063,6 +1063,8 @@ input:focus {
   padding: var(--space-3);
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  display: flex;
+  align-items: center;
 }
 
 .platform-table-body .platform-row:last-child .platform-cell {

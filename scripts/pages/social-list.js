@@ -1,8 +1,11 @@
 import { createApiClient } from "../api/client.js";
-import { CONFIG } from "../core/config.js";
+import { CONFIG } from "../config.js";
 import { clearSessionToken, getSessionToken } from "../api/session.js";
 import {
+  applyCustomScripts,
+  applyCustomStylesheets,
   clearNotice,
+  ensureRequiredConfigOrRenderError,
   escapeHtml,
   getCookie,
   getInitials,
@@ -10,7 +13,7 @@ import {
   readableError,
   setCookie,
   showNotice,
-} from "../core/utils.js";
+} from "../utils.js";
 
 const state = {
   sessionToken: getSessionToken(),
@@ -83,6 +86,12 @@ const els = {
 };
 
 function init() {
+  if (!ensureRequiredConfigOrRenderError(CONFIG)) {
+    return;
+  }
+
+  applyCustomScripts(CONFIG.customScripts);
+  applyCustomStylesheets(CONFIG.customStylesheets);
   syncTheme(resolveInitialTheme());
 
   if (!state.sessionToken) {

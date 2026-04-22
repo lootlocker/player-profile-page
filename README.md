@@ -11,6 +11,7 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - Connected accounts list
 - Friends, followers, and following totals on profile
 - Dedicated social subpages for friends, followers, and following
+- Dedicated blocked players subpage with unblock actions
 
 ## Files
 
@@ -22,6 +23,7 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `profile/followers.html` followers list subpage
 - `profile/following.html` following list subpage
 - `profile/platforms.html` platform linking status subpage
+- `profile/blocked.html` blocked players subpage
 - `styles/styles.css` visual theme and layout
 - `styles/custom.css` optional local overrides loaded after `styles/styles.css` (gitignored)
 - `styles/templates/*.css` starter theme templates you can copy into `styles/custom.css`
@@ -33,26 +35,42 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `scripts/api/client.js` LootLocker API client and endpoint wrappers
 - `scripts/api/auth.js` auth flow helpers (sign up/sign in + session creation)
 - `scripts/api/session.js` session token read/write helpers
-- `scripts/core/config.js` shared runtime config for all pages
-- `scripts/core/utils.js` shared utilities (cookies, notices, escaping, helpers)
+- `scripts/config.js` shared runtime config for all pages
+- `scripts/utils.js` shared utilities (cookies, notices, escaping, helpers)
 - `scripts/custom.js` optional local behavior overrides loaded before page scripts (gitignored)
 
 ## Configure
 
-Update values in `scripts/core/config.js`:
+Set runtime values in `scripts/custom.js` only:
 
 ```js
-export const CONFIG = {
+// scripts/custom.js
+window.LootLockerProfileConfig = {
   apiBase: "https://api.lootlocker.com",
   gameKey: "YOUR_GAME_KEY",
   domainKey: "YOUR_DOMAIN_KEY",
-  publisherName: "LootLocker",
+  publisherName: "Your Brand",
   isDevelopment: "true",
   gameVersion: "1.0.0.0",
-  sessionCookieName: "ll_profile_session",
   rememberDays: 30,
+  customStylesheets: ["styles/custom.css"],
+  customScripts: ["scripts/brand-hooks.js"],
 };
 ```
+
+For additional white-label stylesheets, set `customStylesheets` through runtime config:
+
+```html
+<script>
+  window.LootLockerProfileConfig = {
+    customStylesheets: ["styles/custom.css", "styles/brand-overrides.css"],
+  };
+</script>
+```
+
+Each path is appended as a `<link rel="stylesheet">` at runtime by page scripts.
+
+Additional custom scripts can be loaded with `customScripts` the same way.
 
 ## Run Locally
 
@@ -67,6 +85,33 @@ For custom styling/behavior that should survive upstream updates, create these o
 - `styles/custom.css`
 - `scripts/custom.js`
 
+Custom icon/asset overrides should go in:
+
+- `styles/assets/custom/`
+
+That folder's contents are gitignored by default (except its README).
+
+To override typeface in `styles/custom.css`, for example:
+
+```css
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Your Brand Font", "Segoe UI", sans-serif;
+}
+```
+
+## Branding Assets To Replace
+
+For white-label branding, replace these files with your own assets:
+
+- `styles/assets/favicon.ico`
+- `styles/assets/logo-darkmode.svg`
+- `styles/assets/logo-lightmode.svg`
+- `styles/assets/logo.svg`
+
 They are already referenced by all pages and loaded automatically when present.
 Both files are listed in `.gitignore`, so teams can customize freely without accidentally pushing local overrides.
 
@@ -77,6 +122,26 @@ You can also start from ready-made examples in `styles/templates/`:
 - `styles/templates/template-carbon-electric.css`
 
 Copy any template contents into `styles/custom.css`, then tweak colors, spacing, radii, and fonts as needed.
+
+## Agent And LLM Guidance (Source Of Truth)
+
+If you are using Copilot or another coding agent/LLM, treat this README as the primary instruction source for customization behavior.
+
+Required customization behavior:
+
+1. Put white-label style changes in `styles/custom.css`.
+2. Keep `styles/styles.css` generic unless the change is intended for all consumers.
+3. Put custom icons/assets in `styles/assets/custom/`.
+4. Override typeface in `styles/custom.css`.
+5. Use `LootLockerProfileConfig.customStylesheets` for additional stylesheet links.
+6. Use `LootLockerProfileConfig.customScripts` for additional script links.
+
+Supporting agent instruction files:
+
+- `.github/copilot-instructions.md`
+- `AGENTS.md`
+
+These files point back to this README to avoid duplicated or conflicting instructions.
 
 ## Endpoint Flow
 

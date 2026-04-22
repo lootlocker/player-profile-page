@@ -1,8 +1,11 @@
 import { createApiClient } from "../api/client.js";
-import { CONFIG } from "../core/config.js";
+import { CONFIG } from "../config.js";
 import { clearSessionToken, getSessionToken } from "../api/session.js";
 import {
+  applyCustomScripts,
+  applyCustomStylesheets,
   clearNotice,
+  ensureRequiredConfigOrRenderError,
   escapeHtml,
   getCookie,
   getInitials,
@@ -10,7 +13,7 @@ import {
   readableError,
   setCookie,
   showNotice,
-} from "../core/utils.js";
+} from "../utils.js";
 
 const THEME_ROOT_CLASS = "theme-dark";
 const THEME_QUERY = window.matchMedia("(prefers-color-scheme: dark)");
@@ -110,6 +113,12 @@ const els = {
 };
 
 function init() {
+  if (!ensureRequiredConfigOrRenderError(CONFIG)) {
+    return;
+  }
+
+  applyCustomScripts(CONFIG.customScripts);
+  applyCustomStylesheets(CONFIG.customStylesheets);
   syncTheme(resolveInitialTheme());
 
   if (!state.sessionToken) {

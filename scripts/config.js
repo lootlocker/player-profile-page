@@ -1,11 +1,12 @@
 export const CONFIG = {
   apiBase: "https://api.lootlocker.com",
-  gameKey: "dev_a568cd2ac6964626848b3cc871ae90f3",
-  domainKey: "m72rrmth",
+  gameKey: "YOUR_GAME_KEY",
+  domainKey: "YOUR_DOMAIN_KEY",
   publisherName: "LootLocker",
   isDevelopment: "true",
   gameVersion: "1.0.0.0",
-  sessionCookieName: "ll_profile_session",
   rememberDays: 30,
+  customStylesheets: [],
+  customScripts: [],
   ...window.LootLockerProfileConfig,
 };
