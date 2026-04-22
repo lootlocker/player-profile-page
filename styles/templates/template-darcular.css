@@ -128,6 +128,29 @@ h3 {
   margin: 0 calc(-1 * var(--space-8));
 }
 
+.auth-page {
+  background: #2b2d30;
+}
+
+.auth-page::before {
+  display: none;
+}
+
+.auth-page .shell {
+  background: transparent;
+}
+
+.auth-page .auth-card {
+  background: #232425;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, #232425);
+  box-shadow: none;
+  padding: var(--space-6);
+}
+
+#authLogo {
+  content: url("assets/logo-darkmode.svg");
+}
+
 .profile-uid-row {
   margin-top: -0.5rem;
 }
