@@ -1,0 +1,611 @@
+/*
+  Terminal Template
+  ─────────────────────────────────────────────────────
+  Old-school green-phosphor CRT terminal aesthetic.
+  Monospace everything. Scanlines. Flicker cursor.
+  No gradients, no shadows, no radius. Just the glow.
+
+  Copy this file (or individual sections) into styles/custom.css.
+  Needs to be paired with the JS in scripts/templates/template-terminal.js
+
+  Section guide:
+  1) Theme tokens
+  2) CRT effects — scanlines + glow
+  3) Global typography
+  4) Shell + topbar
+  5) Profile summary
+  6) Buttons
+  7) Tabs + nav
+  8) Cards
+  9) Settings block — .env / config file style
+  10) Connected accounts
+  11) Inputs + forms
+  12) Notices + toasts
+  13) Avatar
+  14) Social list
+*/
+
+/* 1) Theme tokens --------------------------------------------------------- */
+:root,
+:root.theme-dark,
+:root:not(.theme-dark) {
+  color-scheme: dark;
+
+  --bg: #050e05;
+  --card: #060f06;
+  --card-muted: #081008;
+  --surface: #070f07;
+  --input-bg: #060d06;
+  --text: #a8ff78;
+  --text-muted: #4d8a4d;
+  --border: #1f4a1f;
+  --accent: #a8ff78;
+  --accent-soft: #0d280d;
+  --stat-hover-bg: #0a1e0a;
+  --danger: #ff5555;
+  --danger-soft: #2a0d0d;
+  --notice-error-border: #6b2424;
+  --provider-icon-bg: #0a1a0a;
+  --status-linked-border: #2a6a2a;
+  --status-linked-bg: #071407;
+  --status-linked-text: #a8ff78;
+  --pending-incoming-border: #2a6a2a;
+  --pending-incoming-bg: #071407;
+  --pending-incoming-text: #a8ff78;
+  --pending-outgoing-border: #6a4a0a;
+  --pending-outgoing-bg: #1a1007;
+  --pending-outgoing-text: #ffcc44;
+  --button-text: #a8ff78;
+  --toast-success-bg: #071407;
+  --toast-success-border: #2a6a2a;
+  --toast-success-text: #a8ff78;
+  --radius: 0px;
+  --radius-sm: 0px;
+  --shadow: none;
+
+  /* terminal-specific */
+  --term-green: #a8ff78;
+  --term-green-dim: #4d8a4d;
+  --term-green-bright: #ccff99;
+  --term-cursor-width: 0.55em;
+  --term-scanline-opacity: 0.13;
+  --term-glow: 0 0 6px rgba(168, 255, 120, 0.55), 0 0 14px rgba(168, 255, 120, 0.22);
+  --term-glow-sm: 0 0 4px rgba(168, 255, 120, 0.45);
+}
+
+/* 2) CRT effects — scanlines + ambient glow ------------------------------ */
+
+/*
+  Scanline overlay sits over the entire page via a fixed pseudo-element.
+  We use a repeating-linear-gradient to draw thin dark bands.
+*/
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, var(--term-scanline-opacity)) 3px,
+    rgba(0, 0, 0, var(--term-scanline-opacity)) 4px
+  );
+}
+
+/* Faint vignette to look like a curved CRT glass edge */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 62%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+/* 3) Global typography ---------------------------------------------------- */
+*,
+button,
+input,
+select,
+textarea,
+a,
+p,
+span,
+div,
+li,
+th,
+td,
+h1,
+h2,
+h3 {
+  font-family: "Courier New", "Lucida Console", "Consolas", "Menlo", monospace !important;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--term-green);
+  /* subtle ambient green light on the body */
+  box-shadow: inset 0 0 120px rgba(40, 120, 40, 0.12);
+}
+
+/* Blinking block cursor on any focused input */
+@keyframes term-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* 4) Shell + topbar ------------------------------------------------------- */
+.shell {
+  position: relative;
+}
+
+/* Boot header line above the whole interface */
+.topbar {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+}
+
+/* Hide the logo image; replace with a text prompt prefix */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
+}
+
+.brand::before {
+  content: "root@lootlocker:~$";
+  color: var(--term-green-bright);
+  font-size: 0.92rem;
+  white-space: nowrap;
+  text-shadow: var(--term-glow-sm);
+}
+
+#brandLogo {
+  display: none;
+}
+
+.topbar-actions {
+  gap: 0.75rem;
+}
+
+/* 5) Profile summary ------------------------------------------------------ */
+.profile-summary {
+  border: 1px solid var(--border);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+/* Top-left corner bracket decoration */
+.profile-summary::before {
+  content: "┌─[ PLAYER_INFO ]";
+  position: absolute;
+  top: -0.75em;
+  left: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--term-green-dim);
+  background: var(--bg);
+  padding: 0 0.4ch;
+  text-shadow: none;
+  letter-spacing: 0.06em;
+}
+
+.profile-summary::after {
+  content: "└─────────────────";
+  position: absolute;
+  bottom: -0.75em;
+  left: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--term-green-dim);
+  background: var(--bg);
+  padding: 0 0.4ch;
+}
+
+.profile-identity h2 {
+  font-size: 1.1rem;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+  text-shadow: var(--term-glow-sm);
+}
+
+/* Prefix the display name with a prompt marker */
+.profile-identity h2::before {
+  content: "> ";
+  color: var(--term-green-bright);
+}
+
+.profile-identity .muted {
+  font-size: 0.82rem;
+  color: var(--term-green-dim);
+}
+
+/* Social stat boxes */
+.stat {
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.stat-link:hover {
+  border-color: var(--term-green);
+  background: var(--accent-soft);
+  box-shadow: var(--term-glow-sm);
+}
+
+.stat__value {
+  font-size: 1.4rem;
+  color: var(--term-green-bright);
+  text-shadow: var(--term-glow-sm);
+}
+
+.stat__label {
+  font-size: 0.72rem;
+  color: var(--term-green-dim);
+  letter-spacing: 0.1em;
+}
+
+/* 6) Buttons -------------------------------------------------------------- */
+.button {
+  border-radius: 0;
+  border: 1px solid var(--term-green-dim);
+  background: transparent;
+  color: var(--term-green);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: border-color 0.1s, background 0.1s, box-shadow 0.1s;
+}
+
+.button::before {
+  content: "[ ";
+}
+
+.button::after {
+  content: " ]";
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--term-green);
+  background: var(--accent-soft);
+  box-shadow: var(--term-glow-sm);
+}
+
+.button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--term-green) 18%, transparent);
+}
+
+.button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Ghost variant — same as default in terminal world */
+.button--ghost {
+  border-color: var(--term-green-dim);
+  background: transparent;
+  color: var(--term-green-dim);
+}
+
+.button--ghost:hover:not(:disabled) {
+  color: var(--term-green);
+  border-color: var(--term-green);
+  background: var(--accent-soft);
+  box-shadow: var(--term-glow-sm);
+}
+
+/* Danger */
+.button--danger {
+  border-color: #6b2424;
+  color: var(--danger);
+  background: transparent;
+}
+
+.button--danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  box-shadow: 0 0 4px rgba(255, 85, 85, 0.4);
+}
+
+/* 7) Tabs + nav ----------------------------------------------------------- */
+.page-tabs {
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.page-tabs-divider {
+  display: none;
+}
+
+.page-tab-link {
+  border: none;
+  border-radius: 0;
+  color: var(--term-green-dim);
+  background: transparent;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.page-tab-link:hover:not(.is-active) {
+  color: var(--term-green);
+  background: transparent;
+  border-bottom-color: var(--term-green-dim);
+}
+
+.page-tab-link.is-active {
+  color: var(--term-green-bright);
+  background: transparent;
+  border-bottom: 2px solid var(--term-green);
+  box-shadow: none;
+  text-shadow: var(--term-glow-sm);
+}
+
+/* Social dropdown */
+.social-menu__summary {
+  color: var(--term-green-dim);
+}
+
+.social-menu__card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.social-menu__link {
+  color: var(--term-green-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.social-menu__link:hover {
+  color: var(--term-green);
+  background: var(--accent-soft);
+}
+
+/* 8) Cards ---------------------------------------------------------------- */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--card);
+  box-shadow: none;
+  position: relative;
+}
+
+/* Box-drawing top label on every card */
+.section-title-row h3,
+.section-title-row--start h3 {
+  font-size: 0.78rem;
+  font-weight: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--term-green-bright);
+  text-shadow: var(--term-glow-sm);
+}
+
+.section-title-row h3::before {
+  content: "── ";
+  color: var(--term-green-dim);
+}
+
+.section-title-row h3::after {
+  content: " ──";
+  color: var(--term-green-dim);
+}
+
+/* 9) Settings block ------------------------------------------------------- */
+.settings-rows {
+  counter-reset: cfg-line;
+}
+
+.settings-row {
+  counter-increment: cfg-line;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.4rem 0;
+  gap: 0;
+  align-items: baseline;
+  justify-content: flex-start;
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+/* Line numbers in the gutter */
+.settings-row::before {
+  content: counter(cfg-line, decimal-leading-zero);
+  color: var(--term-green-dim);
+  min-width: 3ch;
+  text-align: right;
+  padding-right: 1.5ch;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  margin-right: 1.5ch;
+  opacity: 0.6;
+}
+
+.settings-row .stat__label {
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--term-green-dim);
+  flex-shrink: 0;
+  min-width: 12ch;
+}
+
+/* Key=value separator */
+.settings-row .stat__label::after {
+  content: " =";
+  color: var(--term-green-dim);
+  margin-right: 1ch;
+}
+
+.settings-row strong,
+.settings-row .player-name-display {
+  margin-left: auto;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.settings-row strong {
+  color: var(--term-green-bright);
+  font-weight: normal;
+  text-shadow: var(--term-glow-sm);
+}
+
+/* Quote wrap on values */
+.settings-row strong::before {
+  content: '"';
+  color: var(--term-green-dim);
+}
+
+.settings-row strong::after {
+  content: '"';
+  color: var(--term-green-dim);
+}
+
+/* 10) Connected accounts -------------------------------------------------- */
+.platform-table-header .platform-cell {
+  border-bottom: 1px solid var(--border);
+  color: var(--term-green-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.6rem;
+}
+
+.platform-row {
+  border-radius: 0;
+}
+
+.platform-row .platform-cell {
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 0.6rem;
+}
+
+.platform-row:last-child .platform-cell {
+  border-bottom: none;
+}
+
+.platform-name {
+  color: var(--term-green-bright);
+}
+
+.provider-pill {
+  border-radius: 0;
+  border-color: var(--border);
+  background: transparent;
+}
+
+/* 11) Inputs + forms ------------------------------------------------------ */
+input,
+textarea {
+  border-radius: 0;
+  border: 1px solid var(--term-green-dim);
+  background: var(--input-bg);
+  color: var(--term-green);
+  caret-color: var(--term-green-bright);
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--term-green);
+  box-shadow: var(--term-glow-sm);
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--term-green-dim);
+  opacity: 0.6;
+}
+
+/* Blinking cursor via caret-color — browsers handle the blink animation */
+input:focus {
+  caret-color: var(--term-green-bright);
+}
+
+/* 12) Notices + toasts ---------------------------------------------------- */
+.notice {
+  border-radius: 0;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 0.82rem;
+}
+
+.notice--success {
+  border-color: var(--term-green-dim);
+  color: var(--term-green-bright);
+  background: var(--accent-soft);
+}
+
+.notice--error {
+  border-color: #6b2424;
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* Top-center toast */
+.top-toast {
+  border-radius: 0;
+}
+
+/* 13) Avatar -------------------------------------------------------------- */
+.avatar {
+  border-radius: 0;
+  border: 1px solid var(--term-green-dim);
+  background: var(--bg);
+  color: var(--term-green-bright);
+  font-size: 1.2rem;
+  font-weight: normal;
+  text-shadow: var(--term-glow);
+  box-shadow: var(--term-glow-sm);
+}
+
+/* Copy UID button */
+.copy-uid-button {
+  color: var(--term-green-dim);
+}
+
+.copy-uid-button:hover {
+  color: var(--term-green);
+  filter: drop-shadow(0 0 3px rgba(168, 255, 120, 0.6));
+}
+
+/* Theme toggle */
+.theme-toggle {
+  display: none !important;
+}
+
+/* 14) Social list --------------------------------------------------------- */
+.social-list-item {
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.social-name {
+  color: var(--term-green-bright);
+  text-shadow: var(--term-glow-sm);
+}
+
+#listTitle {
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--term-green-dim);
+  text-shadow: none;
+}
