@@ -21,21 +21,9 @@ const LOGO_BY_THEME = {
   light: "../styles/assets/logo-lightmode.svg",
   dark: "../styles/assets/logo-darkmode.svg",
 };
-
-const THEME_ICON = {
-  moon: "../styles/assets/icons/moon-dark.svg",
-  sun: "../styles/assets/icons/sun-light.svg",
-};
-
-const COPY_ICON_BY_MODE = {
-  default: {
-    light: "../styles/assets/icons/copy-light.svg",
-    dark: "../styles/assets/icons/copy-dark.svg",
-  },
-  success: {
-    light: "../styles/assets/icons/check-light.svg",
-    dark: "../styles/assets/icons/check-dark.svg",
-  },
+const ICON_BY_STATE = {
+  default: "copy",
+  success: "check",
 };
 
 const PUBLISHER_NAME = String(CONFIG.publisherName || "Publisher");
@@ -172,8 +160,8 @@ function syncTheme(isDark) {
 
   if (els.themeToggleButton) {
     const nextThemeLabel = isDark ? "Enable light mode" : "Enable dark mode";
-    const themeIcon = isDark ? THEME_ICON.moon : THEME_ICON.sun;
-    els.themeToggleButton.innerHTML = `<span aria-hidden="true"><img src="${themeIcon}" alt="" /></span>`;
+    const themeIcon = isDark ? "moon" : "sun";
+    els.themeToggleButton.innerHTML = `<span class="ui-icon ui-icon--${themeIcon}" aria-hidden="true"></span>`;
     els.themeToggleButton.setAttribute("aria-label", nextThemeLabel);
     els.themeToggleButton.setAttribute("title", nextThemeLabel);
   }
@@ -777,8 +765,8 @@ function showCopiedButtonState() {
     state.copyUidButtonTimerId = null;
   }
 
-  const mode = getThemeMode();
-  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.success[mode]}" alt="" /></span>`;
+  els.copyUidButton.innerHTML =
+    '<span class="ui-icon ui-icon--check" aria-hidden="true"></span>';
 
   state.copyUidButtonTimerId = window.setTimeout(() => {
     state.copyUidButtonTimerId = null;
@@ -796,8 +784,8 @@ function resetCopyUidButtonIcon() {
     state.copyUidButtonTimerId = null;
   }
 
-  const mode = getThemeMode();
-  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.default[mode]}" alt="" /></span>`;
+  els.copyUidButton.innerHTML =
+    '<span class="ui-icon ui-icon--copy" aria-hidden="true"></span>';
 }
 
 function updateCopyUidButtonIconForTheme() {
@@ -805,12 +793,10 @@ function updateCopyUidButtonIconForTheme() {
     return;
   }
 
-  const mode = getThemeMode();
-  const iconSet = state.copyUidButtonTimerId
-    ? COPY_ICON_BY_MODE.success
-    : COPY_ICON_BY_MODE.default;
-
-  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${iconSet[mode]}" alt="" /></span>`;
+  const iconName = state.copyUidButtonTimerId
+    ? ICON_BY_STATE.success
+    : ICON_BY_STATE.default;
+  els.copyUidButton.innerHTML = `<span class="ui-icon ui-icon--${iconName}" aria-hidden="true"></span>`;
 }
 
 function getThemeMode() {

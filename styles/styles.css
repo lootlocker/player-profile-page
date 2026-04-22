@@ -197,6 +197,49 @@ p {
   flex-wrap: wrap;
 }
 
+.ui-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.ui-icon--copy {
+  -webkit-mask-image: url("assets/icons/copy.svg");
+  mask-image: url("assets/icons/copy.svg");
+}
+
+.ui-icon--check {
+  -webkit-mask-image: url("assets/icons/check.svg");
+  mask-image: url("assets/icons/check.svg");
+}
+
+.ui-icon--moon {
+  -webkit-mask-image: url("assets/icons/moon.svg");
+  mask-image: url("assets/icons/moon.svg");
+}
+
+.ui-icon--sun {
+  -webkit-mask-image: url("assets/icons/sun.svg");
+  mask-image: url("assets/icons/sun.svg");
+}
+
+.ui-icon--eye {
+  -webkit-mask-image: url("assets/icons/eye.svg");
+  mask-image: url("assets/icons/eye.svg");
+}
+
+.ui-icon--eye-off {
+  -webkit-mask-image: url("assets/icons/eye-off.svg");
+  mask-image: url("assets/icons/eye-off.svg");
+}
+
 .copy-uid-button {
   min-width: 2.25rem;
   min-height: 2.25rem;
@@ -224,7 +267,8 @@ p {
 }
 
 .copy-uid-button svg,
-.copy-uid-button img {
+.copy-uid-button img,
+.copy-uid-button .ui-icon {
   width: 1.24rem;
   height: 1.24rem;
   display: block;
@@ -291,7 +335,8 @@ p {
 }
 
 .theme-toggle svg,
-.theme-toggle img {
+.theme-toggle img,
+.theme-toggle .ui-icon {
   width: 1.15rem;
   height: 1.15rem;
   fill: currentColor;
@@ -500,6 +545,10 @@ p {
   display: none;
 }
 
+.password-toggle__icon.ui-icon {
+  display: none;
+}
+
 .password-toggle__icon--show {
   display: block;
 }
@@ -612,6 +661,16 @@ input:focus {
   min-height: var(--control-height-sm);
   padding: var(--space-2) var(--space-3);
   font-size: 0.9rem;
+}
+
+.button--danger {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger-soft) 60%, var(--surface));
+}
+
+.button--danger:hover {
+  background: color-mix(in srgb, var(--danger-soft) 82%, var(--surface));
 }
 
 .notice {
@@ -926,6 +985,14 @@ input:focus {
 
 .platform-cell--action {
   text-align: right;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .platform-cell.table-empty {

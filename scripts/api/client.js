@@ -59,6 +59,43 @@ export function createApiClient(config, getSessionToken) {
     return payload;
   }
 
+  async function blockPlayer(playerId) {
+    const encodedPlayerId = encodeURIComponent(playerId);
+    const attempts = [
+      {
+        path: `/game/player/blocks/${encodedPlayerId}`,
+        method: "POST",
+      },
+      {
+        path: `/game/player/blocks/${encodedPlayerId}`,
+        method: "PUT",
+      },
+      {
+        path: `/game/player/block/${encodedPlayerId}`,
+        method: "POST",
+      },
+      {
+        path: `/game/player/block/${encodedPlayerId}`,
+        method: "PUT",
+      },
+    ];
+
+    let lastError = null;
+
+    for (const attempt of attempts) {
+      try {
+        return await apiRequest(attempt.path, { method: attempt.method });
+      } catch (error) {
+        lastError = error;
+        if (error?.status !== 404 && error?.status !== 405) {
+          throw error;
+        }
+      }
+    }
+
+    throw lastError || new Error("Unable to block player.");
+  }
+
   return {
     signUp(email, password) {
       return apiRequest("/white-label-login/sign-up", {
@@ -228,6 +265,8 @@ export function createApiClient(config, getSessionToken) {
         },
       );
     },
+
+    blockPlayer,
 
     listFollowers(playerPublicUid) {
       const query = new URLSearchParams({ per_page: "20" });

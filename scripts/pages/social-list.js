@@ -17,6 +17,7 @@ const state = {
   player: null,
   copyUidStatusTimerId: null,
   copyUidButtonTimerId: null,
+  pendingFriendAction: null,
 };
 
 const pageType = document.body.dataset.socialType || "friends";
@@ -30,19 +31,9 @@ const LOGO_BY_THEME = {
   light: "../styles/assets/logo-lightmode.svg",
   dark: "../styles/assets/logo-darkmode.svg",
 };
-const THEME_ICON = {
-  moon: "../styles/assets/icons/moon-dark.svg",
-  sun: "../styles/assets/icons/sun-light.svg",
-};
-const COPY_ICON_BY_MODE = {
-  default: {
-    light: "../styles/assets/icons/copy-light.svg",
-    dark: "../styles/assets/icons/copy-dark.svg",
-  },
-  success: {
-    light: "../styles/assets/icons/check-light.svg",
-    dark: "../styles/assets/icons/check-dark.svg",
-  },
+const ICON_BY_STATE = {
+  default: "copy",
+  success: "check",
 };
 
 const api = createApiClient(CONFIG, () => state.sessionToken);
@@ -71,6 +62,15 @@ const els = {
   ),
   friendRequestCancelButton: document.getElementById(
     "friendRequestCancelButton",
+  ),
+  friendActionModal: document.getElementById("friendActionModal"),
+  friendActionCloseButton: document.getElementById("friendActionCloseButton"),
+  friendActionTitle: document.getElementById("friendActionModalTitle"),
+  friendActionMessage: document.getElementById("friendActionMessage"),
+  friendActionStatus: document.getElementById("friendActionStatus"),
+  friendActionCancelButton: document.getElementById("friendActionCancelButton"),
+  friendActionConfirmButton: document.getElementById(
+    "friendActionConfirmButton",
   ),
   pendingRequestsSection: document.getElementById("pendingRequestsSection"),
   incomingCount: document.getElementById("incomingCount"),
@@ -113,9 +113,26 @@ function bindEvents() {
       "click",
       closeFriendRequestModal,
     );
+    els.friendActionCloseButton?.addEventListener(
+      "click",
+      closeFriendActionModal,
+    );
+    els.friendActionCancelButton?.addEventListener(
+      "click",
+      closeFriendActionModal,
+    );
+    els.friendActionConfirmButton?.addEventListener(
+      "click",
+      confirmFriendAction,
+    );
     els.friendRequestModal?.addEventListener("click", (event) => {
       if (event.target === els.friendRequestModal) {
         closeFriendRequestModal();
+      }
+    });
+    els.friendActionModal?.addEventListener("click", (event) => {
+      if (event.target === els.friendActionModal) {
+        closeFriendActionModal();
       }
     });
   }
@@ -134,8 +151,8 @@ function syncTheme(isDark) {
 
   if (els.themeToggleButton) {
     const nextThemeLabel = isDark ? "Enable light mode" : "Enable dark mode";
-    const themeIcon = isDark ? THEME_ICON.moon : THEME_ICON.sun;
-    els.themeToggleButton.innerHTML = `<span aria-hidden="true"><img src="${themeIcon}" alt="" /></span>`;
+    const themeIcon = isDark ? "moon" : "sun";
+    els.themeToggleButton.innerHTML = `<span class="ui-icon ui-icon--${themeIcon}" aria-hidden="true"></span>`;
     els.themeToggleButton.setAttribute("aria-label", nextThemeLabel);
     els.themeToggleButton.setAttribute("title", nextThemeLabel);
   }
@@ -330,8 +347,8 @@ function showCopiedButtonState() {
     state.copyUidButtonTimerId = null;
   }
 
-  const mode = getThemeMode();
-  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.success[mode]}" alt="" /></span>`;
+  els.copyUidButton.innerHTML =
+    '<span class="ui-icon ui-icon--check" aria-hidden="true"></span>';
 
   state.copyUidButtonTimerId = window.setTimeout(() => {
     state.copyUidButtonTimerId = null;
@@ -349,8 +366,8 @@ function resetCopyUidButtonIcon() {
     state.copyUidButtonTimerId = null;
   }
 
-  const mode = getThemeMode();
-  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${COPY_ICON_BY_MODE.default[mode]}" alt="" /></span>`;
+  els.copyUidButton.innerHTML =
+    '<span class="ui-icon ui-icon--copy" aria-hidden="true"></span>';
 }
 
 function updateCopyUidButtonIconForTheme() {
@@ -358,12 +375,10 @@ function updateCopyUidButtonIconForTheme() {
     return;
   }
 
-  const mode = getThemeMode();
-  const iconSet = state.copyUidButtonTimerId
-    ? COPY_ICON_BY_MODE.success
-    : COPY_ICON_BY_MODE.default;
-
-  els.copyUidButton.innerHTML = `<span aria-hidden="true"><img src="${iconSet[mode]}" alt="" /></span>`;
+  const iconName = state.copyUidButtonTimerId
+    ? ICON_BY_STATE.success
+    : ICON_BY_STATE.default;
+  els.copyUidButton.innerHTML = `<span class="ui-icon ui-icon--${iconName}" aria-hidden="true"></span>`;
 }
 
 function getThemeMode() {
@@ -409,14 +424,25 @@ function renderFriendList(
         ? "status-chip status-chip--linked"
         : "status-chip status-chip--not-linked";
       const statusLabel = friend.online ? "Online" : "Offline";
-      const actionButton =
+      const escapedPlayerId = playerId ? escapeHtml(String(playerId)) : "";
+      const escapedPlayerName = escapeHtml(name);
+      const primaryAction =
         isFriend && playerId
-          ? `<button class="button button--ghost button--small" type="button" data-remove-friend-id="${escapeHtml(String(playerId))}">Remove</button>`
+          ? `<button class="button button--ghost button--small" type="button" data-remove-friend-id="${escapedPlayerId}" data-player-name="${escapedPlayerName}">Remove</button>`
           : hasIncoming && playerId
-            ? `<button class="button button--small" type="button" data-accept-friend-id="${escapeHtml(String(playerId))}">Accept</button>`
+            ? `<button class="button button--small" type="button" data-accept-friend-id="${escapedPlayerId}">Accept</button>`
             : hasOutgoing && playerId
-              ? `<button class="button button--ghost button--small" type="button" data-cancel-friend-id="${escapeHtml(String(playerId))}">Cancel request</button>`
+              ? `<button class="button button--ghost button--small" type="button" data-cancel-friend-id="${escapedPlayerId}">Cancel request</button>`
               : "";
+      const blockAction =
+        playerId && !isFriend
+          ? `<button class="button button--ghost button--small button--danger" type="button" data-block-player-id="${escapedPlayerId}" data-player-name="${escapedPlayerName}">Block</button>`
+          : isFriend && playerId
+            ? `<button class="button button--ghost button--small button--danger" type="button" data-block-player-id="${escapedPlayerId}" data-player-name="${escapedPlayerName}">Block</button>`
+            : "";
+      const actionButtons = [primaryAction, blockAction]
+        .filter(Boolean)
+        .join("");
 
       return `
       <div class="platform-row">
@@ -428,7 +454,7 @@ function renderFriendList(
             <span class="${statusChipClass}">${escapeHtml(statusLabel)}</span>
           </div>
         </div>
-        <div class="platform-cell platform-cell--action">${actionButton}</div>
+        <div class="platform-cell platform-cell--action">${actionButtons ? `<div class="row-actions">${actionButtons}</div>` : ""}</div>
       </div>
     `;
     })
@@ -446,7 +472,7 @@ function renderFriendsTablePlaceholder(text) {
 
 function handleSocialListClick(event) {
   const button = event.target.closest(
-    "[data-remove-friend-id], [data-accept-friend-id], [data-cancel-friend-id]",
+    "[data-remove-friend-id], [data-accept-friend-id], [data-cancel-friend-id], [data-block-player-id]",
   );
   if (!button) {
     return;
@@ -454,7 +480,21 @@ function handleSocialListClick(event) {
 
   const removePlayerId = button.getAttribute("data-remove-friend-id");
   if (removePlayerId) {
-    removeFriend(removePlayerId, button);
+    openFriendActionModal(
+      "remove",
+      removePlayerId,
+      button.getAttribute("data-player-name") || "this player",
+    );
+    return;
+  }
+
+  const blockPlayerId = button.getAttribute("data-block-player-id");
+  if (blockPlayerId) {
+    openFriendActionModal(
+      "block",
+      blockPlayerId,
+      button.getAttribute("data-player-name") || "this player",
+    );
     return;
   }
 
@@ -471,15 +511,92 @@ function handleSocialListClick(event) {
   }
 }
 
-async function removeFriend(playerId, button) {
+function openFriendActionModal(action, playerId, playerName) {
+  if (
+    !action ||
+    !playerId ||
+    !els.friendActionModal ||
+    !els.friendActionTitle ||
+    !els.friendActionMessage
+  ) {
+    return;
+  }
+
+  state.pendingFriendAction = {
+    action,
+    playerId,
+    playerName: playerName || "this player",
+  };
+
+  const isBlockAction = action === "block";
+  els.friendActionTitle.textContent = isBlockAction
+    ? "Block Player"
+    : "Remove Friend";
+  els.friendActionMessage.textContent = isBlockAction
+    ? `Block ${playerName}? This will prevent friend interactions with this player.`
+    : `Remove ${playerName} from your friends list?`;
+  clearFriendActionStatus();
+
+  if (els.friendActionConfirmButton) {
+    els.friendActionConfirmButton.disabled = false;
+    els.friendActionConfirmButton.textContent = isBlockAction
+      ? "Block player"
+      : "Remove friend";
+    els.friendActionConfirmButton.classList.toggle(
+      "button--danger",
+      isBlockAction,
+    );
+  }
+
+  els.friendActionModal.classList.remove("hidden");
+}
+
+function closeFriendActionModal() {
+  if (!els.friendActionModal) {
+    return;
+  }
+
+  els.friendActionModal.classList.add("hidden");
+  state.pendingFriendAction = null;
+  clearFriendActionStatus();
+
+  if (els.friendActionConfirmButton) {
+    els.friendActionConfirmButton.disabled = false;
+    els.friendActionConfirmButton.textContent = "Confirm";
+    els.friendActionConfirmButton.classList.remove("button--danger");
+  }
+}
+
+async function confirmFriendAction() {
+  if (!state.pendingFriendAction) {
+    showFriendActionStatus("No friend action is currently selected.", true);
+    return;
+  }
+
   clearSocialActionStatus();
-  const originalText = button.textContent;
-  button.disabled = true;
-  button.textContent = "Removing...";
+  clearFriendActionStatus();
+
+  if (els.friendActionConfirmButton) {
+    els.friendActionConfirmButton.disabled = true;
+    els.friendActionConfirmButton.textContent =
+      state.pendingFriendAction.action === "block"
+        ? "Blocking..."
+        : "Removing...";
+  }
+
+  const actionType = state.pendingFriendAction.action;
+  const targetPlayerId = state.pendingFriendAction.playerId;
 
   try {
-    await api.removeFriend(playerId);
-    showSocialActionStatus("Friend removed.", false);
+    if (actionType === "block") {
+      await api.blockPlayer(targetPlayerId);
+      showSocialActionStatus("Player blocked.", false);
+    } else {
+      await api.removeFriend(targetPlayerId);
+      showSocialActionStatus("Friend removed.", false);
+    }
+
+    closeFriendActionModal();
     await hydrateFriendsPage(state.player?.public_uid);
   } catch (error) {
     if (isSessionError(error)) {
@@ -487,10 +604,12 @@ async function removeFriend(playerId, button) {
       return;
     }
 
-    showSocialActionStatus(readableError(error), true);
-  } finally {
-    button.disabled = false;
-    button.textContent = originalText;
+    showFriendActionStatus(readableError(error), true);
+    if (els.friendActionConfirmButton) {
+      els.friendActionConfirmButton.disabled = false;
+      els.friendActionConfirmButton.textContent =
+        actionType === "block" ? "Block player" : "Remove friend";
+    }
   }
 }
 
@@ -502,7 +621,7 @@ async function acceptFriendRequest(playerId, button) {
 
   try {
     await api.acceptFriendRequest(playerId);
-    showSocialActionStatus("Friend request accept ed.", false);
+    showSocialActionStatus("Friend request accepted.", false);
     await hydrateFriendsPage(state.player?.public_uid);
   } catch (error) {
     if (isSessionError(error)) {
@@ -834,6 +953,27 @@ function clearFriendRequestStatus() {
   els.friendRequestStatus.textContent = "";
   els.friendRequestStatus.classList.add("hidden");
   els.friendRequestStatus.classList.remove("notice--error", "notice--success");
+}
+
+function showFriendActionStatus(text, isError) {
+  if (!els.friendActionStatus) {
+    return;
+  }
+
+  els.friendActionStatus.textContent = text;
+  els.friendActionStatus.classList.remove("hidden");
+  els.friendActionStatus.classList.toggle("notice--error", isError);
+  els.friendActionStatus.classList.toggle("notice--success", !isError);
+}
+
+function clearFriendActionStatus() {
+  if (!els.friendActionStatus) {
+    return;
+  }
+
+  els.friendActionStatus.textContent = "";
+  els.friendActionStatus.classList.add("hidden");
+  els.friendActionStatus.classList.remove("notice--error", "notice--success");
 }
 
 function showSocialActionStatus(text, isError) {
