@@ -120,8 +120,9 @@ You can also start from ready-made examples in `styles/templates/`:
 - `styles/templates/template-sunrise-citrus.css`
 - `styles/templates/template-darcular.css`
 - `styles/templates/template-carbon-electric.css`
+- `styles/templates/template-terminal.css` (needs to be added along with `scripts/templates/template-terminal.js`)
 
-Copy any template contents into `styles/custom.css`, then tweak colors, spacing, radii, and fonts as needed.
+Copy any template contents into `styles/custom.css` and `scripts/custom.js` respectively, then tweak colors, spacing, radii, and fonts as needed.
 
 ## Agent And LLM Guidance (Source Of Truth)
 

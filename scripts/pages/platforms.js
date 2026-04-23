@@ -625,16 +625,15 @@ async function openConnectModal(platformKey) {
     const lease = await api.createRemoteLease();
     state.connectLease = lease;
 
+    const authUrl = appendProviderQuery(lease.redirect_uri || "#", platformKey);
+
     if (lease.code && els.connectQrImage) {
-      els.connectQrImage.src = buildProviderQrSource(lease.code, platformKey);
+      els.connectQrImage.src = buildProviderQrSource(authUrl);
       els.connectQrImage.classList.remove("hidden");
     }
 
     if (els.connectLink) {
-      els.connectLink.href = appendProviderQuery(
-        lease.redirect_uri || "#",
-        platformKey,
-      );
+      els.connectLink.href = authUrl;
       els.connectLink.removeAttribute("aria-disabled");
       els.connectLink.classList.remove("is-disabled");
     }
@@ -687,10 +686,8 @@ async function confirmConnectedAccount() {
   }
 }
 
-function buildProviderQrSource(code, provider) {
-  const safeCode = encodeURIComponent(String(code || ""));
-  const safeProvider = encodeURIComponent(String(provider || ""));
-  return `http://auth.game/qr/${safeCode}.png?provider=${safeProvider}`;
+function buildProviderQrSource(authUrl) {
+  return `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(authUrl)}&size=220x220&margin=4&color=a8ff78&bgcolor=060f06`;
 }
 
 function appendProviderQuery(url, provider) {
