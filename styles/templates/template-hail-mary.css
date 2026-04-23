@@ -1,0 +1,494 @@
+@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700&display=swap");
+
+/*
+  Hail Mary Template
+  Copy this file (or individual sections) into styles/custom.css.
+
+  Inspired by utilitarian spacecraft instrument panel UI:
+  deep black backgrounds, amber/orange phosphor monochrome,
+  segmented readout aesthetic, no decorative flourishes.
+
+  Section guide:
+  1) Theme tokens
+  2) Typography + body + scanlines
+  3) Avatar + profile header
+  4) Buttons + tabs
+  5) Cards + layout
+  6) Settings block
+  7) Connected accounts table
+  8) Status chips + notices
+*/
+
+/* 1) Theme tokens --------------------------------------------------------- */
+:root {
+  --bg: #0a0800;
+  --card: #0f0c00;
+  --card-muted: #130f00;
+  --surface: #0f0c00;
+  --input-bg: #000000;
+  --text: #e8a020;
+  --text-muted: #7a5010;
+  --border: #3a2800;
+  --accent: #f0a800;
+  --accent-soft: #1a1200;
+  --stat-hover-bg: #1a1200;
+  --danger: #d44000;
+  --danger-soft: #1a0800;
+  --notice-error-border: #6a2000;
+  --provider-icon-bg: #1a1200;
+  --status-linked-border: #c08000;
+  --status-linked-bg: #1a1200;
+  --status-linked-text: #f0a800;
+  --pending-incoming-border: #c08000;
+  --pending-incoming-bg: #1a1200;
+  --pending-incoming-text: #f0a800;
+  --pending-outgoing-border: #804000;
+  --pending-outgoing-bg: #120800;
+  --pending-outgoing-text: #d06020;
+  --button-text: #000000;
+  --toast-success-bg: #121000;
+  --toast-success-border: #a07000;
+  --toast-success-text: #e0a000;
+  --radius: 0px;
+  --radius-sm: 0px;
+  --shadow: none;
+}
+
+:root.theme-dark {
+  --bg: #0a0800;
+  --card: #0f0c00;
+  --card-muted: #130f00;
+  --surface: #0f0c00;
+  --input-bg: #000000;
+  --text: #e8a020;
+  --text-muted: #7a5010;
+  --border: #3a2800;
+  --accent: #f0a800;
+  --accent-soft: #1a1200;
+  --stat-hover-bg: #1a1200;
+  --danger: #d44000;
+  --danger-soft: #1a0800;
+  --notice-error-border: #6a2000;
+  --provider-icon-bg: #1a1200;
+  --status-linked-border: #c08000;
+  --status-linked-bg: #1a1200;
+  --status-linked-text: #f0a800;
+  --pending-incoming-border: #c08000;
+  --pending-incoming-bg: #1a1200;
+  --pending-incoming-text: #f0a800;
+  --pending-outgoing-border: #804000;
+  --pending-outgoing-bg: #120800;
+  --pending-outgoing-text: #d06020;
+  --button-text: #000000;
+  --toast-success-bg: #121000;
+  --toast-success-border: #a07000;
+  --toast-success-text: #e0a000;
+  --shadow: none;
+}
+
+:root,
+:root.theme-dark,
+:root:not(.theme-dark) {
+  color-scheme: dark;
+}
+
+/* 2) Typography + body + scanlines ---------------------------------------- */
+body,
+button,
+input,
+select,
+textarea,
+a,
+p,
+span,
+div,
+li,
+th,
+td,
+h1,
+h2,
+h3 {
+  font-family: "Share Tech Mono", "Courier New", monospace;
+}
+
+body {
+  background-color: #000000;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(240, 168, 0, 0.018) 3px,
+      rgba(240, 168, 0, 0.018) 4px
+    );
+}
+
+/* Vignette + CRT curve suggestion */
+body::before {
+  content: "";
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+body::after {
+  content: "";
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* subtle flicker band — purely decorative */
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(0, 0, 0, 0.04) 1px,
+    rgba(0, 0, 0, 0.04) 2px
+  );
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+}
+
+/* Auth pages */
+.auth-page {
+  background: #000000;
+}
+
+.auth-page::before,
+.auth-page::after {
+  display: none;
+}
+
+.auth-page .shell {
+  background: transparent;
+}
+
+.auth-page .auth-card {
+  background: #0f0c00;
+  border: 1px solid #3a2800;
+  box-shadow: 0 0 30px rgba(240, 168, 0, 0.08);
+  border-radius: 0;
+}
+
+#authLogo,
+#brandLogo {
+  content: url("../assets/custom/logo-hail-mary.svg");
+  filter: none;
+  width: 60px;
+  height: 60px;
+}
+
+/* 3) Avatar --------------------------------------------------------------- */
+.avatar {
+  border-radius: 0;
+  background: #000000;
+  color: var(--accent);
+  font-family: "Orbitron", "Share Tech Mono", monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 1px solid var(--accent);
+  box-shadow:
+    0 0 0 3px #000000,
+    0 0 0 4px #3a2800,
+    0 0 12px rgba(240, 168, 0, 0.3);
+  text-shadow: 0 0 8px rgba(240, 168, 0, 0.8);
+}
+
+/* 4) Buttons + tabs ------------------------------------------------------- */
+.button {
+  border-radius: 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  font-size: 0.82rem;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #000000;
+  box-shadow: 0 0 10px rgba(240, 168, 0, 0.25);
+  transition: box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.button:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 18px rgba(240, 168, 0, 0.45);
+  transform: none;
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: #3a2800;
+  color: var(--text);
+  box-shadow: none;
+}
+
+.button--ghost:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(240, 168, 0, 0.15);
+  filter: none;
+}
+
+.page-tab-link {
+  border-radius: 0;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.page-tab-link.is-active {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+  background: transparent;
+  box-shadow: none;
+  text-shadow: 0 0 8px rgba(240, 168, 0, 0.6);
+}
+
+.page-tab-link:hover {
+  color: var(--accent);
+  background: transparent;
+}
+
+.page-tabs-divider {
+  border-color: #3a2800;
+}
+
+.theme-toggle {
+  display: none !important;
+}
+
+/* 5) Cards + layout ------------------------------------------------------- */
+.page-layout {
+  background: var(--card);
+  border: 1px solid #3a2800;
+  box-shadow:
+    0 0 0 1px #1a1200,
+    inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid #3a2800;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+h1,
+h2,
+h3,
+.section-title-row h3,
+.section-title-row--start h3,
+#listTitle {
+  font-family: "Orbitron", "Share Tech Mono", monospace;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(240, 168, 0, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.stat__label {
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:hover {
+  text-shadow: 0 0 6px rgba(240, 168, 0, 0.6);
+}
+
+input,
+textarea,
+select {
+  border-radius: 0;
+  border-color: #3a2800;
+  background: #000000;
+  color: var(--accent);
+  caret-color: var(--accent);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(240, 168, 0, 0.2);
+  outline: none;
+}
+
+/* 6) Settings block ------------------------------------------------------- */
+.settings-rows {
+  display: grid;
+  gap: 0;
+  border: 1px solid #3a2800;
+}
+
+.settings-row {
+  border: none !important;
+  border-bottom: 1px solid #3a2800 !important;
+  border-radius: 0 !important;
+  background: var(--card);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: none;
+}
+
+.settings-row:last-child {
+  border-bottom: none !important;
+}
+
+.settings-row .stat__label {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.settings-row strong {
+  color: var(--accent);
+  font-weight: 400;
+  text-shadow: 0 0 6px rgba(240, 168, 0, 0.3);
+}
+
+.settings-row .icon-button {
+  border-radius: 0;
+  border-color: #3a2800;
+  background: #000000;
+  color: var(--text);
+}
+
+.settings-row .icon-button--confirm {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.settings-row .icon-button--cancel {
+  color: var(--danger);
+  border-color: #6a2000;
+  background: var(--danger-soft);
+}
+
+/* 7) Connected accounts table --------------------------------------------- */
+.platform-table-header .platform-cell {
+  border-bottom: 1px solid #3a2800;
+}
+
+.platform-cell--header {
+  font-weight: 400;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted) !important;
+  padding: var(--space-2) 0;
+}
+
+.platform-table-body {
+  gap: 0;
+  border: 1px solid #3a2800;
+}
+
+.platform-row {
+  border: none !important;
+  border-bottom: 1px solid #3a2800 !important;
+  border-radius: 0 !important;
+  background: var(--card);
+  box-shadow: none;
+}
+
+.platform-row:last-child {
+  border-bottom: none !important;
+}
+
+.platform-row .platform-cell {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  border-bottom: none;
+}
+
+.platform-row .platform-cell:last-child {
+  justify-content: flex-end;
+}
+
+.platform-cell strong,
+.platform-name {
+  color: var(--text);
+  font-weight: 400;
+  text-shadow: 0 0 4px rgba(240, 168, 0, 0.2);
+}
+
+.muted,
+.platform-cell.muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* 8) Status chips + notices ----------------------------------------------- */
+.status-chip--linked,
+.pending-badge--incoming {
+  border-color: var(--status-linked-border);
+  color: var(--status-linked-text);
+  background: var(--status-linked-bg);
+  text-shadow: 0 0 4px rgba(240, 168, 0, 0.4);
+  border-radius: 0;
+}
+
+.status-chip--not-linked {
+  border-color: #3a2800;
+  color: var(--text-muted);
+  background: transparent;
+  border-radius: 0;
+}
+
+.pending-badge--outgoing {
+  border-color: var(--pending-outgoing-border);
+  color: var(--pending-outgoing-text);
+  background: var(--pending-outgoing-bg);
+  border-radius: 0;
+}
+
+.notice {
+  font-size: 0.85rem;
+  border-radius: 0;
+}
+
+.notice--error {
+  border-color: var(--notice-error-border);
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.notice--success {
+  border-color: var(--toast-success-border);
+  color: var(--toast-success-text);
+  background: var(--toast-success-bg);
+}
+
+.status-chip,
+.pending-badge {
+  border-width: 1px;
+  border-radius: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

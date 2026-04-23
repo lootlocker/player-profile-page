@@ -1,0 +1,562 @@
+@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
+
+/*
+  Matrix Template
+  Copy this file (or individual sections) into styles/custom.css.
+
+  Inspired by the Matrix digital rain: deep black backgrounds, phosphor green
+  text, scanline texture, and monospace throughout.
+
+  Section guide:
+  1) Theme tokens
+  2) Global type + scanline background
+  3) Avatar + profile header
+  4) Buttons + tabs
+  5) Cards + content
+  6) Settings .env block styling
+  7) Connected accounts table
+  8) Status chips + notices
+*/
+
+/* 1) Theme tokens --------------------------------------------------------- */
+:root {
+  --bg: #000000;
+  --card: #050f05;
+  --card-muted: #020a02;
+  --surface: #071007;
+  --input-bg: #000000;
+  --text: #00cc44;
+  --text-muted: #1a6630;
+  --border: #0d4020;
+  --accent: #00ff41;
+  --accent-soft: #001a0a;
+  --stat-hover-bg: #031a08;
+  --danger: #ff3333;
+  --danger-soft: #1a0000;
+  --notice-error-border: #661111;
+  --provider-icon-bg: #001a0a;
+  --status-linked-border: #00ff41;
+  --status-linked-bg: #001a0a;
+  --status-linked-text: #00ff41;
+  --pending-incoming-border: #00cc44;
+  --pending-incoming-bg: #001508;
+  --pending-incoming-text: #00cc44;
+  --pending-outgoing-border: #aaff00;
+  --pending-outgoing-bg: #0a1200;
+  --pending-outgoing-text: #ccff33;
+  --button-text: #00ff41;
+  --toast-success-bg: #001a08;
+  --toast-success-border: #00aa33;
+  --toast-success-text: #00ff41;
+  --radius: 2px;
+  --radius-sm: 1px;
+  --shadow: 0 0 18px rgba(0, 255, 65, 0.12);
+}
+
+:root.theme-dark {
+  --bg: #000000;
+  --card: #050f05;
+  --card-muted: #020a02;
+  --surface: #071007;
+  --input-bg: #000000;
+  --text: #00cc44;
+  --text-muted: #1a6630;
+  --border: #0d4020;
+  --accent: #00ff41;
+  --accent-soft: #001a0a;
+  --stat-hover-bg: #031a08;
+  --danger: #ff3333;
+  --danger-soft: #1a0000;
+  --notice-error-border: #661111;
+  --provider-icon-bg: #001a0a;
+  --status-linked-border: #00ff41;
+  --status-linked-bg: #001a0a;
+  --status-linked-text: #00ff41;
+  --pending-incoming-border: #00cc44;
+  --pending-incoming-bg: #001508;
+  --pending-incoming-text: #00cc44;
+  --pending-outgoing-border: #aaff00;
+  --pending-outgoing-bg: #0a1200;
+  --pending-outgoing-text: #ccff33;
+  --button-text: #00ff41;
+  --toast-success-bg: #001a08;
+  --toast-success-border: #00aa33;
+  --toast-success-text: #00ff41;
+  --shadow: 0 0 18px rgba(0, 255, 65, 0.12);
+}
+
+:root,
+:root.theme-dark,
+:root:not(.theme-dark) {
+  color-scheme: dark;
+}
+
+/* 2) Global type + scanline background ------------------------------------ */
+body,
+button,
+input,
+select,
+textarea,
+a,
+p,
+span,
+div,
+li,
+th,
+td,
+h1,
+h2,
+h3 {
+  font-family: "Share Tech Mono", "Courier New", "Lucida Console", monospace;
+}
+
+body {
+  background-color: #000000;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 65, 0.015) 2px,
+      rgba(0, 255, 65, 0.015) 4px
+    );
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+}
+
+/* Auth pages */
+.auth-page {
+  background: #000000;
+}
+
+.auth-page::before {
+  display: none;
+}
+
+.auth-page .shell {
+  background: transparent;
+}
+
+.auth-page .auth-card {
+  background: #050f05;
+  border: 1px solid #0d4020;
+  box-shadow: 0 0 24px rgba(0, 255, 65, 0.08), inset 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+#authLogo {
+  content: url("assets/logo-darkmode.svg");
+  filter: drop-shadow(0 0 6px rgba(0, 255, 65, 0.5));
+}
+
+/* 3) Avatar + profile header ---------------------------------------------- */
+.avatar {
+  border-radius: 0;
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.4), inset 0 0 10px rgba(0, 255, 65, 0.05);
+  background: #000000;
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent);
+}
+
+.profile-uid-row {
+  margin-top: -0.5rem;
+}
+
+/* 4) Buttons + tabs ------------------------------------------------------- */
+.button {
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 400;
+  font-size: 0.84rem;
+  background: transparent;
+  border: 1px solid #00aa33;
+  color: var(--accent);
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.1);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.button:hover {
+  background: rgba(0, 255, 65, 0.05);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px rgba(0, 255, 65, 0.25);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.9);
+}
+
+.button--primary {
+  background: rgba(0, 255, 65, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.2);
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: #0d4020;
+  box-shadow: none;
+}
+
+.page-tab-link {
+  border-radius: 0;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.12s ease, border-color 0.12s ease, text-shadow 0.12s ease;
+}
+
+.page-tab-link.is-active {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+  background: transparent;
+  box-shadow: none;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.7);
+}
+
+.page-tab-link:hover {
+  color: var(--accent);
+  background: transparent;
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.4);
+}
+
+.page-tabs-divider {
+  border-color: #0d4020;
+}
+
+.theme-toggle {
+  display: none !important;
+}
+
+/* 5) Cards + content ------------------------------------------------------ */
+.page-layout {
+  background: #020a02;
+  border: 1px solid #0d4020;
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.06);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid #0d4020;
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.05);
+}
+
+.content {
+  gap: var(--space-5);
+}
+
+.content .card {
+  border-color: #0d4020;
+}
+
+h1,
+h2,
+h3,
+.section-title-row h3,
+.section-title-row--start h3,
+#listTitle {
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stat__label {
+  color: #00aa33;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+a {
+  color: var(--accent);
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.3);
+}
+
+a:hover {
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.7);
+}
+
+input,
+textarea,
+select {
+  background: #000000;
+  border-color: #0d4020;
+  color: var(--accent);
+  caret-color: var(--accent);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.15);
+  outline: none;
+}
+
+/* 6) Settings .env block styling ----------------------------------------- */
+.settings-rows {
+  counter-reset: env-line;
+}
+
+.settings-row {
+  counter-increment: env-line;
+  padding: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0;
+  border: none !important;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  border-bottom: 1px solid #0a2a12 !important;
+}
+
+.settings-row::before {
+  content: counter(env-line, decimal-leading-zero);
+  color: #0d4020;
+  margin-right: 1ch;
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+  padding: var(--space-1) 1ch var(--space-1) 0;
+  border-right: 1px solid #0a2a12;
+}
+
+.settings-row .stat__label {
+  display: inline-flex;
+  align-items: baseline;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  color: transparent;
+  font-size: 0;
+}
+
+.settings-row .stat__label::before {
+  color: #00cc44;
+  letter-spacing: 0.04em;
+  font-size: 0.86rem;
+  position: absolute;
+}
+
+.settings-row:nth-of-type(1) .stat__label::before {
+  content: "PLAYER_NAME";
+}
+
+.settings-row:nth-of-type(2) .stat__label::before {
+  content: "PUBLIC_UID";
+}
+
+.settings-row:nth-of-type(3) .stat__label::before {
+  content: "JOINED";
+}
+
+.settings-row:nth-of-type(4) .stat__label::before {
+  content: "LAST_SEEN";
+}
+
+.settings-row:nth-of-type(5) .stat__label::before {
+  content: "EMAIL";
+}
+
+.settings-row .stat__label::after {
+  content: "=";
+  color: #339933;
+  margin: 0 0 0 0.5ch;
+}
+
+.settings-row .stat__label,
+.settings-row strong,
+#settingsPublicUid,
+#settingsJoinedAt,
+#settingsLastSeenAt,
+#settingsEmail {
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.settings-row strong {
+  display: inline-flex;
+  align-items: baseline;
+  font-weight: 400;
+  color: var(--accent);
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.4);
+}
+
+.settings-row strong::before {
+  content: '"';
+  color: #00aa33;
+}
+
+.settings-row strong::after {
+  content: '"';
+  color: #00aa33;
+}
+
+.settings-row .player-name-display {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin-left: 0.5ch;
+}
+
+.settings-row .player-name-inline {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.settings-row .player-name-form {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.settings-row .player-name-form input {
+  width: 18ch;
+  min-width: 12ch;
+  max-width: 32ch;
+  padding: 0.28rem 0.45rem;
+  border-radius: 1px;
+}
+
+.settings-row .icon-button {
+  width: 1.55rem;
+  min-width: 1.55rem;
+  height: 1.55rem;
+  min-height: 1.55rem;
+  border-radius: 1px;
+  border-color: #0d4020;
+  background: #000000;
+}
+
+.settings-row .icon-button--confirm {
+  color: var(--accent);
+  border-color: #00aa33;
+  background: rgba(0, 255, 65, 0.05);
+}
+
+.settings-row .icon-button--cancel {
+  color: #ff3333;
+  border-color: #661111;
+  background: #1a0000;
+}
+
+#playerNameStatus {
+  margin: 0.45rem 0 0.55rem;
+  margin-left: calc(3ch + 1px);
+  width: fit-content;
+}
+
+/* 7) Connected accounts table --------------------------------------------- */
+.platform-table-header .platform-cell {
+  border-bottom: 1px solid #0d4020;
+}
+
+.platform-cell--header {
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  font-size: 0.82rem;
+  color: #1a6630 !important;
+  text-transform: uppercase;
+  padding: var(--space-3) 0;
+}
+
+.settings-row,
+.platform-row {
+  border: none !important;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.platform-table-body {
+  gap: 0;
+}
+
+.platform-row .platform-cell,
+.settings-row {
+  border-bottom: 1px solid #0a2a12;
+}
+
+.platform-row .platform-cell {
+  padding: var(--space-2) 0;
+  display: flex;
+  align-items: center;
+}
+
+.platform-row .platform-cell:last-child {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.platform-cell strong,
+.platform-name {
+  color: #00cc44;
+}
+
+.platform-row .platform-cell:first-child,
+.platform-row .platform-cell:first-child .platform-name,
+.platform-row .platform-cell:first-child strong {
+  color: var(--accent);
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.3);
+}
+
+.platform-row .platform-cell:not(:first-child) {
+  color: #00aa33;
+}
+
+.muted,
+.platform-cell.muted {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+/* 8) Status chips + notices ----------------------------------------------- */
+.status-chip--linked,
+.pending-badge--incoming {
+  border-color: var(--status-linked-border);
+  color: var(--status-linked-text);
+  background: var(--status-linked-bg);
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.4);
+}
+
+.status-chip--not-linked {
+  border-color: #0d4020;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.pending-badge--outgoing {
+  border-color: var(--pending-outgoing-border);
+  color: var(--pending-outgoing-text);
+  background: var(--pending-outgoing-bg);
+}
+
+.notice {
+  font-size: 0.86rem;
+}
+
+.notice--error {
+  border-color: var(--notice-error-border);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.notice--success {
+  border-color: var(--toast-success-border);
+  color: var(--toast-success-text);
+  background: var(--toast-success-bg);
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.3);
+}
+
+.status-chip,
+.pending-badge {
+  border-width: 1px;
+}
