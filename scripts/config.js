@@ -6,6 +6,7 @@ export const CONFIG = {
   isDevelopment: "true",
   gameVersion: "1.0.0.0",
   rememberDays: 30,
+  modules: ["social", "platforms", "game-keys"],
   customStylesheets: [],
   customScripts: [],
   ...window.LootLockerProfileConfig,

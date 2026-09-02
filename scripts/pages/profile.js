@@ -1,50 +1,37 @@
 import { createApiClient } from "../api/client.js";
 import { CONFIG } from "../config.js";
-import {
-  clearSessionToken,
-  getAccountEmail,
-  getSessionToken,
-} from "../api/session.js";
+import { getAccountEmail, getSessionToken } from "../api/session.js";
 import {
   applyCustomScripts,
   applyCustomStylesheets,
   clearNotice,
   ensureRequiredConfigOrRenderError,
-  getCookie,
-  getInitials,
   isSessionError,
   readableError,
-  setCookie,
   showNotice,
 } from "../utils.js";
-
-const THEME_ROOT_CLASS = "theme-dark";
-const THEME_QUERY = window.matchMedia("(prefers-color-scheme: dark)");
-const THEME_COOKIE_NAME = "ll_theme";
-const THEME_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
-const LOGO_BY_THEME = {
-  light: "styles/assets/logo-lightmode.svg",
-  dark: "styles/assets/logo-darkmode.svg",
-};
+import {
+  bindHeaderEvents,
+  injectHeader,
+  renderProfile,
+  setHeaderPlayer,
+  showHeaderLoadingState,
+  signOut,
+  syncTheme,
+  resolveInitialTheme,
+} from "../header.js";
+import { navTemplate } from "../templates/nav.js";
 
 const state = {
   sessionToken: getSessionToken(),
   player: null,
   playerName: null,
-  copyUidStatusTimerId: null,
-  copyUidButtonTimerId: null,
 };
 
 const api = createApiClient(CONFIG, () => state.sessionToken);
 
 const els = {
-  logoutButton: document.getElementById("logoutButton"),
   globalError: document.getElementById("globalError"),
-  playerName: document.getElementById("playerName"),
-  playerUid: document.getElementById("playerUid"),
-  copyUidButton: document.getElementById("copyUidButton"),
-  copyUidStatus: document.getElementById("copyUidStatus"),
-  avatar: document.getElementById("avatar"),
   settingsPlayerId: document.getElementById("settingsPlayerId"),
   settingsPublicUid: document.getElementById("settingsPublicUid"),
   settingsJoinedAt: document.getElementById("settingsJoinedAt"),
@@ -53,8 +40,6 @@ const els = {
   passwordResetForm: document.getElementById("passwordResetForm"),
   passwordResetButton: document.getElementById("passwordResetButton"),
   passwordResetStatus: document.getElementById("passwordResetStatus"),
-  brandLogo: document.getElementById("brandLogo"),
-  themeToggleButton: document.getElementById("themeToggleButton"),
   settingsPlayerName: document.getElementById("settingsPlayerName"),
   playerNameEditButton: document.getElementById("playerNameEditButton"),
   playerNameEditRow: document.getElementById("playerNameEditRow"),
@@ -70,6 +55,15 @@ function init() {
     return;
   }
 
+  injectHeader("");
+  const navEl = document.querySelector("nav-placeholder");
+  if (navEl) {
+    navEl.outerHTML = navTemplate({
+      activePage: "profile",
+      modules: CONFIG.modules,
+    });
+  }
+
   applyCustomScripts(CONFIG.customScripts);
   applyCustomStylesheets(CONFIG.customStylesheets);
   syncTheme(resolveInitialTheme());
@@ -79,88 +73,22 @@ function init() {
     return;
   }
 
+  bindHeaderEvents("login.html");
   bindEvents();
-  showLoadingState();
+  showHeaderLoadingState();
   hydrateProfile();
 }
 
 function bindEvents() {
-  els.logoutButton.addEventListener("click", signOut);
-  els.themeToggleButton.addEventListener("click", toggleThemePreference);
-  els.copyUidButton.addEventListener("click", handleCopyUid);
   els.passwordResetForm.addEventListener("submit", handlePasswordReset);
   els.playerNameEditButton.addEventListener("click", handlePlayerNameEdit);
   els.playerNameForm.addEventListener("submit", handlePlayerNameSave);
   els.playerNameCancelButton.addEventListener("click", handlePlayerNameCancel);
   els.playerNameInput.addEventListener("keydown", handlePlayerNameInputKeydown);
-  THEME_QUERY.addEventListener("change", handleThemeChange);
-}
-
-function handleThemeChange(event) {
-  if (getSavedTheme()) {
-    return;
-  }
-
-  syncTheme(event.matches);
-}
-
-function syncTheme(isDark) {
-  document.documentElement.classList.toggle(THEME_ROOT_CLASS, isDark);
-
-  if (els.themeToggleButton) {
-    const nextThemeLabel = isDark ? "Enable light mode" : "Enable dark mode";
-    const themeIcon = isDark ? "moon" : "sun";
-    els.themeToggleButton.innerHTML = `<span class="ui-icon ui-icon--${themeIcon}" aria-hidden="true"></span>`;
-    els.themeToggleButton.setAttribute("aria-label", nextThemeLabel);
-    els.themeToggleButton.setAttribute("title", nextThemeLabel);
-  }
-
-  if (els.brandLogo) {
-    els.brandLogo.src = isDark ? LOGO_BY_THEME.dark : LOGO_BY_THEME.light;
-  }
-
-  updateCopyUidButtonIconForTheme();
-}
-
-function resolveInitialTheme() {
-  const savedTheme = getSavedTheme();
-  if (savedTheme === "dark") {
-    return true;
-  }
-
-  if (savedTheme === "light") {
-    return false;
-  }
-
-  return THEME_QUERY.matches;
-}
-
-function getSavedTheme() {
-  const value = getCookie(THEME_COOKIE_NAME);
-  if (value === "light" || value === "dark") {
-    return value;
-  }
-
-  return null;
-}
-
-function toggleThemePreference() {
-  const isDark = document.documentElement.classList.contains(THEME_ROOT_CLASS);
-  const nextTheme = isDark ? "light" : "dark";
-
-  setCookie(THEME_COOKIE_NAME, nextTheme, {
-    maxAge: THEME_COOKIE_MAX_AGE,
-    sameSite: "Lax",
-    secure: window.location.protocol === "https:",
-  });
-
-  syncTheme(nextTheme === "dark");
 }
 
 function showLoadingState() {
-  els.playerName.textContent = "Loading profile...";
-  els.playerUid.textContent = "Please wait";
-  els.avatar.textContent = "..";
+  showHeaderLoadingState();
   if (els.settingsPlayerId) {
     els.settingsPlayerId.textContent = "-";
   }
@@ -176,9 +104,6 @@ function showLoadingState() {
   if (els.settingsEmail) {
     els.settingsEmail.textContent = "Unknown";
   }
-  els.copyUidButton.disabled = true;
-  resetCopyUidButtonIcon();
-  clearCopyUidStatus();
   if (els.settingsPlayerName) {
     els.settingsPlayerName.textContent = "-";
   }
@@ -203,6 +128,7 @@ async function hydrateProfile() {
         ? playerNameResult.value.name || null
         : null;
 
+    setHeaderPlayer(state.player);
     renderProfile(state.player, state.playerName);
     renderSettings(state.player);
     renderPlayerName(state.playerName);
@@ -213,89 +139,11 @@ async function hydrateProfile() {
 
 function handlePageError(error) {
   if (isSessionError(error)) {
-    signOut();
+    signOut("login.html");
     return;
   }
 
   showNotice(els.globalError, readableError(error));
-}
-
-function renderProfile(profile, playerName) {
-  const displayName =
-    playerName || profile.name || profile.public_uid || "Player";
-  const uid = profile.public_uid || "No public UID";
-
-  els.playerName.textContent = displayName;
-  els.playerUid.textContent = uid;
-  els.avatar.textContent = getInitials(displayName);
-  els.copyUidButton.disabled = !profile.public_uid;
-  resetCopyUidButtonIcon();
-  clearCopyUidStatus();
-}
-
-async function handleCopyUid() {
-  const uid = state.player?.public_uid;
-  if (!uid) {
-    showCopyUidStatus("No Public UID available to copy.", true);
-    return;
-  }
-
-  try {
-    await copyText(uid);
-    showCopiedButtonState();
-    showCopyUidStatus("Public UID copied.", false);
-  } catch (_error) {
-    resetCopyUidButtonIcon();
-    showCopyUidStatus("Unable to copy UID on this browser.", true);
-  }
-}
-
-function showCopiedButtonState() {
-  if (!els.copyUidButton) {
-    return;
-  }
-
-  if (state.copyUidButtonTimerId) {
-    window.clearTimeout(state.copyUidButtonTimerId);
-    state.copyUidButtonTimerId = null;
-  }
-
-  els.copyUidButton.innerHTML =
-    '<span class="ui-icon ui-icon--check" aria-hidden="true"></span>';
-
-  state.copyUidButtonTimerId = window.setTimeout(() => {
-    state.copyUidButtonTimerId = null;
-    resetCopyUidButtonIcon();
-  }, 2200);
-}
-
-function resetCopyUidButtonIcon() {
-  if (!els.copyUidButton) {
-    return;
-  }
-
-  if (state.copyUidButtonTimerId) {
-    window.clearTimeout(state.copyUidButtonTimerId);
-    state.copyUidButtonTimerId = null;
-  }
-
-  els.copyUidButton.innerHTML =
-    '<span class="ui-icon ui-icon--copy" aria-hidden="true"></span>';
-}
-
-function updateCopyUidButtonIconForTheme() {
-  if (!els.copyUidButton) {
-    return;
-  }
-
-  const iconName = state.copyUidButtonTimerId ? "check" : "copy";
-  els.copyUidButton.innerHTML = `<span class="ui-icon ui-icon--${iconName}" aria-hidden="true"></span>`;
-}
-
-function getThemeMode() {
-  return document.documentElement.classList.contains(THEME_ROOT_CLASS)
-    ? "dark"
-    : "light";
 }
 
 function renderSettings(profile) {
@@ -431,13 +279,6 @@ async function handlePasswordReset(event) {
   }
 }
 
-function signOut() {
-  state.sessionToken = null;
-  state.player = null;
-  clearSessionToken();
-  window.location.href = "login.html";
-}
-
 function formatDateTime(value) {
   if (!value) {
     return "Unknown";
@@ -452,51 +293,6 @@ function formatDateTime(value) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
-}
-
-async function copyText(value) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-
-  const input = document.createElement("textarea");
-  input.value = value;
-  input.setAttribute("readonly", "");
-  input.style.position = "absolute";
-  input.style.left = "-9999px";
-  document.body.appendChild(input);
-  input.select();
-  document.execCommand("copy");
-  document.body.removeChild(input);
-}
-
-function showCopyUidStatus(text, isError) {
-  if (state.copyUidStatusTimerId) {
-    window.clearTimeout(state.copyUidStatusTimerId);
-    state.copyUidStatusTimerId = null;
-  }
-
-  els.copyUidStatus.textContent = text;
-  els.copyUidStatus.classList.remove("hidden");
-  els.copyUidStatus.classList.toggle("notice--error", isError);
-  els.copyUidStatus.classList.toggle("notice--success", !isError);
-
-  state.copyUidStatusTimerId = window.setTimeout(
-    clearCopyUidStatus,
-    isError ? 3200 : 2200,
-  );
-}
-
-function clearCopyUidStatus() {
-  if (state.copyUidStatusTimerId) {
-    window.clearTimeout(state.copyUidStatusTimerId);
-    state.copyUidStatusTimerId = null;
-  }
-
-  els.copyUidStatus.textContent = "";
-  els.copyUidStatus.classList.add("hidden");
-  els.copyUidStatus.classList.remove("notice--error", "notice--success");
 }
 
 function showPasswordResetStatus(text, isError) {
@@ -521,14 +317,6 @@ function resolveAccountEmail(profile) {
       getAccountEmail() ||
       "",
   ).trim();
-}
-
-function setConnectLoading(isLoading) {
-  if (!els.connectLoading) {
-    return;
-  }
-
-  els.connectLoading.classList.toggle("hidden", !isLoading);
 }
 
 init();

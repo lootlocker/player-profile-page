@@ -1,54 +1,43 @@
 import { createApiClient } from "../api/client.js";
 import { CONFIG } from "../config.js";
-import { clearSessionToken, getSessionToken } from "../api/session.js";
+import { getSessionToken } from "../api/session.js";
 import {
   applyCustomScripts,
   applyCustomStylesheets,
   clearNotice,
   ensureRequiredConfigOrRenderError,
   escapeHtml,
-  getCookie,
-  getInitials,
+  isModuleEnabled,
   isSessionError,
   readableError,
-  setCookie,
+  renderModuleDisabledPage,
   showNotice,
 } from "../utils.js";
+import {
+  bindHeaderEvents,
+  injectHeader,
+  renderProfile,
+  setHeaderPlayer,
+  showHeaderLoadingState,
+  syncTheme,
+  resolveInitialTheme,
+  signOut,
+} from "../header.js";
+import { subnavTemplate } from "../templates/nav.js";
 
 const state = {
   sessionToken: getSessionToken(),
   player: null,
-  copyUidStatusTimerId: null,
-  copyUidButtonTimerId: null,
   pendingFriendAction: null,
 };
 
 const pageType = document.body.dataset.socialType || "friends";
 const pageTitle = document.body.dataset.socialTitle || "Friends";
 
-const THEME_ROOT_CLASS = "theme-dark";
-const THEME_QUERY = window.matchMedia("(prefers-color-scheme: dark)");
-const THEME_COOKIE_NAME = "ll_theme";
-const THEME_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
-const LOGO_BY_THEME = {
-  light: "../styles/assets/logo-lightmode.svg",
-  dark: "../styles/assets/logo-darkmode.svg",
-};
-const ICON_BY_STATE = {
-  default: "copy",
-  success: "check",
-};
-
 const api = createApiClient(CONFIG, () => state.sessionToken);
 
 const els = {
-  logoutButton: document.getElementById("logoutButton"),
   globalError: document.getElementById("globalError"),
-  avatar: document.getElementById("avatar"),
-  playerName: document.getElementById("playerName"),
-  playerUid: document.getElementById("playerUid"),
-  copyUidButton: document.getElementById("copyUidButton"),
-  copyUidStatus: document.getElementById("copyUidStatus"),
   listTitle: document.getElementById("listTitle"),
   listCount: document.getElementById("listCount"),
   listError: document.getElementById("listError"),
@@ -81,13 +70,25 @@ const els = {
   incomingList: document.getElementById("incomingList"),
   outgoingList: document.getElementById("outgoingList"),
   socialActionStatus: document.getElementById("socialActionStatus"),
-  brandLogo: document.getElementById("brandLogo"),
-  themeToggleButton: document.getElementById("themeToggleButton"),
 };
 
 function init() {
   if (!ensureRequiredConfigOrRenderError(CONFIG)) {
     return;
+  }
+
+  if (!isModuleEnabled(CONFIG, "social")) {
+    renderModuleDisabledPage("../profile.html");
+    return;
+  }
+
+  injectHeader("..");
+  const navEl = document.querySelector("nav-placeholder");
+  if (navEl) {
+    navEl.outerHTML = subnavTemplate({
+      activePage: pageType,
+      modules: CONFIG.modules,
+    });
   }
 
   applyCustomScripts(CONFIG.customScripts);
@@ -100,17 +101,13 @@ function init() {
   }
 
   els.listTitle.textContent = pageTitle;
+  bindHeaderEvents("../login.html");
   bindEvents();
-  showLoadingState();
+  showHeaderLoadingState();
   hydratePage();
 }
 
 function bindEvents() {
-  els.logoutButton.addEventListener("click", signOut);
-  els.themeToggleButton?.addEventListener("click", toggleThemePreference);
-  els.copyUidButton?.addEventListener("click", handleCopyUid);
-  THEME_QUERY.addEventListener("change", handleThemeChange);
-
   els.list?.addEventListener("click", handleSocialListClick);
   els.friendActionCloseButton?.addEventListener(
     "click",
@@ -145,76 +142,8 @@ function bindEvents() {
   }
 }
 
-function handleThemeChange(event) {
-  if (getSavedTheme()) {
-    return;
-  }
-
-  syncTheme(event.matches);
-}
-
-function syncTheme(isDark) {
-  document.documentElement.classList.toggle(THEME_ROOT_CLASS, isDark);
-
-  if (els.themeToggleButton) {
-    const nextThemeLabel = isDark ? "Enable light mode" : "Enable dark mode";
-    const themeIcon = isDark ? "moon" : "sun";
-    els.themeToggleButton.innerHTML = `<span class="ui-icon ui-icon--${themeIcon}" aria-hidden="true"></span>`;
-    els.themeToggleButton.setAttribute("aria-label", nextThemeLabel);
-    els.themeToggleButton.setAttribute("title", nextThemeLabel);
-  }
-
-  if (els.brandLogo) {
-    els.brandLogo.src = isDark ? LOGO_BY_THEME.dark : LOGO_BY_THEME.light;
-  }
-
-  updateCopyUidButtonIconForTheme();
-}
-
-function resolveInitialTheme() {
-  const savedTheme = getSavedTheme();
-  if (savedTheme === "dark") {
-    return true;
-  }
-
-  if (savedTheme === "light") {
-    return false;
-  }
-
-  return THEME_QUERY.matches;
-}
-
-function getSavedTheme() {
-  const value = getCookie(THEME_COOKIE_NAME);
-  if (value === "light" || value === "dark") {
-    return value;
-  }
-
-  return null;
-}
-
-function toggleThemePreference() {
-  const isDark = document.documentElement.classList.contains(THEME_ROOT_CLASS);
-  const nextTheme = isDark ? "light" : "dark";
-
-  setCookie(THEME_COOKIE_NAME, nextTheme, {
-    maxAge: THEME_COOKIE_MAX_AGE,
-    sameSite: "Lax",
-    secure: window.location.protocol === "https:",
-  });
-
-  syncTheme(nextTheme === "dark");
-}
-
 function showLoadingState() {
-  els.playerName.textContent = "Loading profile...";
-  els.playerUid.textContent = "Please wait";
-  els.avatar.textContent = "..";
-  if (els.copyUidButton) {
-    els.copyUidButton.disabled = true;
-  }
-  resetCopyUidButtonIcon();
-  clearCopyUidStatus();
+  showHeaderLoadingState();
   if (pageType === "friends") {
     els.list.innerHTML = `<div class="platform-row"><div class="platform-cell muted table-empty">Loading friends...</div></div>`;
   } else if (pageType === "followers") {
@@ -235,6 +164,7 @@ async function hydratePage() {
   try {
     const info = await api.getInfoFromSession();
     state.player = info.info;
+    setHeaderPlayer(state.player);
     renderProfile(state.player);
 
     if (pageType === "friends") {
@@ -332,7 +262,7 @@ async function hydrateFollowerLikePage(publicUid) {
 
 function handlePageError(error) {
   if (isSessionError(error)) {
-    signOut();
+    signOut("../login.html");
     return;
   }
 
@@ -340,86 +270,6 @@ function handlePageError(error) {
   showNotice(els.listError, `Unable to load ${pageTitle.toLowerCase()}.`);
   els.listCount.textContent = "0";
   renderListPlaceholder(`No ${pageTitle.toLowerCase()} found.`);
-}
-
-function renderProfile(profile) {
-  const displayName = profile.name || profile.public_uid || "Player";
-  const uid = profile.public_uid || "No public UID";
-  els.playerName.textContent = displayName;
-  els.playerUid.textContent = uid;
-  els.avatar.textContent = getInitials(displayName);
-  if (els.copyUidButton) {
-    els.copyUidButton.disabled = !profile.public_uid;
-  }
-  resetCopyUidButtonIcon();
-  clearCopyUidStatus();
-}
-
-async function handleCopyUid() {
-  const uid = state.player?.public_uid;
-  if (!uid) {
-    showCopyUidStatus("No Public UID available to copy.", true);
-    return;
-  }
-
-  try {
-    await copyText(uid);
-    showCopiedButtonState();
-    showCopyUidStatus("Public UID copied.", false);
-  } catch (_error) {
-    resetCopyUidButtonIcon();
-    showCopyUidStatus("Unable to copy UID on this browser.", true);
-  }
-}
-
-function showCopiedButtonState() {
-  if (!els.copyUidButton) {
-    return;
-  }
-
-  if (state.copyUidButtonTimerId) {
-    window.clearTimeout(state.copyUidButtonTimerId);
-    state.copyUidButtonTimerId = null;
-  }
-
-  els.copyUidButton.innerHTML =
-    '<span class="ui-icon ui-icon--check" aria-hidden="true"></span>';
-
-  state.copyUidButtonTimerId = window.setTimeout(() => {
-    state.copyUidButtonTimerId = null;
-    resetCopyUidButtonIcon();
-  }, 2200);
-}
-
-function resetCopyUidButtonIcon() {
-  if (!els.copyUidButton) {
-    return;
-  }
-
-  if (state.copyUidButtonTimerId) {
-    window.clearTimeout(state.copyUidButtonTimerId);
-    state.copyUidButtonTimerId = null;
-  }
-
-  els.copyUidButton.innerHTML =
-    '<span class="ui-icon ui-icon--copy" aria-hidden="true"></span>';
-}
-
-function updateCopyUidButtonIconForTheme() {
-  if (!els.copyUidButton) {
-    return;
-  }
-
-  const iconName = state.copyUidButtonTimerId
-    ? ICON_BY_STATE.success
-    : ICON_BY_STATE.default;
-  els.copyUidButton.innerHTML = `<span class="ui-icon ui-icon--${iconName}" aria-hidden="true"></span>`;
-}
-
-function getThemeMode() {
-  return document.documentElement.classList.contains(THEME_ROOT_CLASS)
-    ? "dark"
-    : "light";
 }
 
 function renderFriendList(
@@ -641,7 +491,7 @@ async function confirmFriendAction() {
     await refreshActiveSocialList();
   } catch (error) {
     if (isSessionError(error)) {
-      signOut();
+      signOut("../login.html");
       return;
     }
 
@@ -680,7 +530,7 @@ async function unblockPlayer(playerId, button) {
     await refreshActiveSocialList();
   } catch (error) {
     if (isSessionError(error)) {
-      signOut();
+      signOut("../login.html");
       return;
     }
 
@@ -703,7 +553,7 @@ async function acceptFriendRequest(playerId, button) {
     await hydrateFriendsPage(state.player?.public_uid);
   } catch (error) {
     if (isSessionError(error)) {
-      signOut();
+      signOut("../login.html");
       return;
     }
 
@@ -726,7 +576,7 @@ async function cancelFriendRequest(playerId, button) {
     await hydrateFriendsPage(state.player?.public_uid);
   } catch (error) {
     if (isSessionError(error)) {
-      signOut();
+      signOut("../login.html");
       return;
     }
 
@@ -1019,7 +869,7 @@ async function submitFriendRequest(event) {
     showSocialActionStatus("Friend request sent.", false);
   } catch (error) {
     if (isSessionError(error)) {
-      signOut();
+      signOut("../login.html");
       return;
     }
 
@@ -1106,66 +956,6 @@ function clearSocialActionStatus() {
   els.socialActionStatus.textContent = "";
   els.socialActionStatus.classList.add("hidden");
   els.socialActionStatus.classList.remove("notice--error", "notice--success");
-}
-
-async function copyText(value) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-
-  const input = document.createElement("textarea");
-  input.value = value;
-  input.setAttribute("readonly", "");
-  input.style.position = "absolute";
-  input.style.left = "-9999px";
-  document.body.appendChild(input);
-  input.select();
-  document.execCommand("copy");
-  document.body.removeChild(input);
-}
-
-function showCopyUidStatus(text, isError) {
-  if (!els.copyUidStatus) {
-    return;
-  }
-
-  if (state.copyUidStatusTimerId) {
-    window.clearTimeout(state.copyUidStatusTimerId);
-    state.copyUidStatusTimerId = null;
-  }
-
-  els.copyUidStatus.textContent = text;
-  els.copyUidStatus.classList.remove("hidden");
-  els.copyUidStatus.classList.toggle("notice--error", isError);
-  els.copyUidStatus.classList.toggle("notice--success", !isError);
-
-  state.copyUidStatusTimerId = window.setTimeout(
-    clearCopyUidStatus,
-    isError ? 3200 : 2200,
-  );
-}
-
-function clearCopyUidStatus() {
-  if (!els.copyUidStatus) {
-    return;
-  }
-
-  if (state.copyUidStatusTimerId) {
-    window.clearTimeout(state.copyUidStatusTimerId);
-    state.copyUidStatusTimerId = null;
-  }
-
-  els.copyUidStatus.textContent = "";
-  els.copyUidStatus.classList.add("hidden");
-  els.copyUidStatus.classList.remove("notice--error", "notice--success");
-}
-
-function signOut() {
-  state.sessionToken = null;
-  state.player = null;
-  clearSessionToken();
-  window.location.href = "../login.html";
 }
 
 init();

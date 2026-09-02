@@ -275,5 +275,9 @@ export function createApiClient(config, getSessionToken) {
         body: { name },
       });
     },
+
+    getPlatformKeys() {
+      return apiRequest("/game/platform-keys/v1");
+    },
   };
 }

@@ -23,6 +23,7 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `profile/followers.html` followers list subpage
 - `profile/following.html` following list subpage
 - `profile/platforms.html` platform linking status subpage
+- `profile/game-keys.html` game keys subpage
 - `profile/blocked.html` blocked players subpage
 - `styles/styles.css` visual theme and layout
 - `styles/custom.css` optional local overrides loaded after `styles/styles.css` (gitignored)
@@ -53,6 +54,7 @@ window.LootLockerProfileConfig = {
   isDevelopment: "true",
   gameVersion: "1.0.0.0",
   rememberDays: 30,
+  modules: ["social", "platforms", "game-keys"],
   customStylesheets: ["styles/custom.css"],
   customScripts: ["scripts/brand-hooks.js"],
 };
@@ -71,6 +73,16 @@ For additional white-label stylesheets, set `customStylesheets` through runtime 
 Each path is appended as a `<link rel="stylesheet">` at runtime by page scripts.
 
 Additional custom scripts can be loaded with `customScripts` the same way.
+
+### Modules
+
+The `modules` array controls which sections are accessible in the profile navigation. Available values:
+
+- `"social"` — Friends, Followers, Following, and Blocked pages
+- `"platforms"` — Connected Accounts page
+- `"game-keys"` — Game Keys page
+
+Disabled modules are hidden from the nav and their dedicated pages show a "Page Not Found" message. Defaults to all modules enabled.
 
 ## Run Locally
 
