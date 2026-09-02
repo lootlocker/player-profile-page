@@ -44,6 +44,19 @@ export function clearNotice(element) {
   element.classList.add("hidden");
 }
 
+/**
+ * Shows a warning in #globalError when the page is loaded via file:// protocol.
+ * Call this early in page init (before any module imports).
+ */
+export function checkFileProtocolAndWarn() {
+  if (window.location.protocol !== "file:") return;
+  const el = document.getElementById("globalError");
+  if (!el) return;
+  el.textContent =
+    "You are running this page from file://. Use a local web server (for example: python3 -m http.server 8080) so modules, cookies, and API calls work reliably.";
+  el.classList.remove("hidden");
+}
+
 export function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")

@@ -5,22 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Friends | LootLocker Profile</title>
     <link rel="icon" type="image/x-icon" href="../styles/assets/favicon.ico" />
-    <script>
-      (function () {
-        var match = document.cookie.match(
-          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
-        );
-        var saved = match ? match[1] : null;
-        var isDark =
-          saved === "dark" ||
-          (!saved &&
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (isDark) {
-          document.documentElement.classList.add("theme-dark");
-        }
-      })();
-    </script>
+    <script src="../scripts/init.js"></script>
     <link rel="stylesheet" href="../styles/styles.css" />
     <link rel="stylesheet" href="../styles/custom.css" />
   </head>

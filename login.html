@@ -5,22 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LootLocker Login</title>
     <link rel="icon" type="image/x-icon" href="styles/assets/favicon.ico" />
-    <script>
-      (function () {
-        var match = document.cookie.match(
-          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
-        );
-        var saved = match ? match[1] : null;
-        var isDark =
-          saved === "dark" ||
-          (!saved &&
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (isDark) {
-          document.documentElement.classList.add("theme-dark");
-        }
-      })();
-    </script>
+    <script src="scripts/init.js"></script>
     <link rel="stylesheet" href="styles/styles.css" />
     <link rel="stylesheet" href="styles/custom.css" />
   </head>
@@ -126,14 +111,6 @@
       </section>
     </main>
 
-    <script>
-      if (window.location.protocol === "file:") {
-        const globalError = document.getElementById("globalError");
-        globalError.textContent =
-          "You are running this page from file://. Use a local web server (for example: python3 -m http.server 8080) so modules, cookies, and API calls work reliably.";
-        globalError.classList.remove("hidden");
-      }
-    </script>
     <script src="scripts/custom.js"></script>
     <script type="module" src="scripts/pages/auth.js"></script>
   </body>

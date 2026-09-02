@@ -22,7 +22,9 @@ function subLinkAria(activePage, id) {
 
 export function navTemplate({ activePage, modules }) {
   const enabled = new Set(
-    Array.isArray(modules) ? modules : ["social", "platforms", "game-keys"],
+    Array.isArray(modules)
+      ? modules
+      : ["social", "platforms", "game-keys", "subscriptions"],
   );
 
   const profileActive =
@@ -44,6 +46,12 @@ export function navTemplate({ activePage, modules }) {
       : ' class="page-tab-link"';
   const keysDataAttr = ' data-module="game-keys"';
   const keysHide = enabled.has("game-keys") ? "" : ' style="display:none"';
+  const subsActive =
+    activePage === "subscriptions"
+      ? ' class="page-tab-link is-active" aria-current="page"'
+      : ' class="page-tab-link"';
+  const subsDataAttr = ' data-module="subscriptions"';
+  const subsHide = enabled.has("subscriptions") ? "" : ' style="display:none"';
 
   return `
     <nav class="page-tabs" aria-label="Profile navigation">
@@ -64,6 +72,7 @@ export function navTemplate({ activePage, modules }) {
       </div>
       <a href="profile/platforms.html"${platformsDataAttr}${platformsHide}>Platforms</a>
       <a href="profile/game-keys.html"${keysActive}${keysDataAttr}${keysHide}>Game Keys</a>
+      <a href="profile/subscriptions.html"${subsActive}${subsDataAttr}${subsHide}>Subscriptions</a>
     </nav>
     <div class="page-tabs-divider" aria-hidden="true"></div>
   `.trim();
@@ -71,7 +80,9 @@ export function navTemplate({ activePage, modules }) {
 
 export function subnavTemplate({ activePage, modules }) {
   const enabled = new Set(
-    Array.isArray(modules) ? modules : ["social", "platforms", "game-keys"],
+    Array.isArray(modules)
+      ? modules
+      : ["social", "platforms", "game-keys", "subscriptions"],
   );
 
   const profileClass =
@@ -93,6 +104,12 @@ export function subnavTemplate({ activePage, modules }) {
       : ' class="page-tab-link"';
   const keysDataAttr = ' data-module="game-keys"';
   const keysHide = enabled.has("game-keys") ? "" : ' style="display:none"';
+  const subsActive =
+    activePage === "subscriptions"
+      ? ' class="page-tab-link is-active" aria-current="page"'
+      : ' class="page-tab-link"';
+  const subsDataAttr = ' data-module="subscriptions"';
+  const subsHide = enabled.has("subscriptions") ? "" : ' style="display:none"';
 
   return `
     <nav class="page-tabs" aria-label="Profile navigation">
@@ -113,6 +130,7 @@ export function subnavTemplate({ activePage, modules }) {
       </div>
       <a href="../profile/platforms.html"${platformsAttr}${platformsHide}>Platforms</a>
       <a href="../profile/game-keys.html"${keysActive}${keysDataAttr}${keysHide}>Game Keys</a>
+      <a href="../profile/subscriptions.html"${subsActive}${subsDataAttr}${subsHide}>Subscriptions</a>
     </nav>
     <div class="page-tabs-divider" aria-hidden="true"></div>
   `.trim();

@@ -24,7 +24,9 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `profile/following.html` following list subpage
 - `profile/platforms.html` platform linking status subpage
 - `profile/game-keys.html` game keys subpage
+- `profile/subscriptions.html` subscriptions subpage
 - `profile/blocked.html` blocked players subpage
+- `COMPONENTS.md` theming & component reference for white-label customization
 - `styles/styles.css` visual theme and layout
 - `styles/custom.css` optional local overrides loaded after `styles/styles.css` (gitignored)
 - `styles/templates/*.css` starter theme templates you can copy into `styles/custom.css`
@@ -33,6 +35,7 @@ Plain HTML, CSS, and JavaScript example for integrating a LootLocker player prof
 - `scripts/pages/profile.js` profile page logic
 - `scripts/pages/social-list.js` shared social subpage logic
 - `scripts/pages/platforms.js` platforms page logic
+- `scripts/pages/subscriptions.js` subscriptions page logic
 - `scripts/api/client.js` LootLocker API client and endpoint wrappers
 - `scripts/api/auth.js` auth flow helpers (sign up/sign in + session creation)
 - `scripts/api/session.js` session token read/write helpers
@@ -54,7 +57,7 @@ window.LootLockerProfileConfig = {
   isDevelopment: "true",
   gameVersion: "1.0.0.0",
   rememberDays: 30,
-  modules: ["social", "platforms", "game-keys"],
+  modules: ["social", "platforms", "game-keys", "subscriptions"],
   customStylesheets: ["styles/custom.css"],
   customScripts: ["scripts/brand-hooks.js"],
 };
@@ -81,6 +84,7 @@ The `modules` array controls which sections are accessible in the profile naviga
 - `"social"` — Friends, Followers, Following, and Blocked pages
 - `"platforms"` — Connected Accounts page
 - `"game-keys"` — Game Keys page
+- `"subscriptions"` — Subscriptions page
 
 Disabled modules are hidden from the nav and their dedicated pages show a "Page Not Found" message. Defaults to all modules enabled.
 
@@ -96,6 +100,8 @@ For custom styling/behavior that should survive upstream updates, create these o
 
 - `styles/custom.css`
 - `scripts/custom.js`
+
+See **[COMPONENTS.md](./COMPONENTS.md)** for the full theming reference — every CSS custom property, component class, and override recipe is documented there.
 
 Custom icon/asset overrides should go in:
 

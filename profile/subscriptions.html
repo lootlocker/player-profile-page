@@ -3,11 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Keys | LootLocker Profile</title>
+    <title>Subscriptions | LootLocker Profile</title>
     <link rel="icon" type="image/x-icon" href="../styles/assets/favicon.ico" />
     <script src="../scripts/init.js"></script>
     <link rel="stylesheet" href="../styles/styles.css" />
     <link rel="stylesheet" href="../styles/custom.css" />
+    <style>
+      #subscriptionsTable .platform-table-header,
+      #subscriptionsTable .platform-row {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    </style>
   </head>
   <body>
     <main class="shell">
@@ -24,40 +30,62 @@
           ></section>
 
           <section class="content" aria-live="polite">
-            <article class="card keys-card">
+            <article class="card">
               <div class="section-title-row">
-                <h3>Game Keys</h3>
+                <h3>Subscriptions</h3>
               </div>
               <p
-                id="keysError"
+                id="subscriptionsError"
                 class="notice notice--error hidden"
                 role="alert"
               ></p>
               <div class="platform-table-wrap">
                 <div
-                  id="keysTable"
+                  id="subscriptionsTable"
                   class="platform-table"
-                  aria-label="Platform keys"
+                  aria-label="Subscriptions"
                 >
                   <div class="platform-table-header" role="row">
                     <div class="platform-cell platform-cell--header">
-                      Campaign
+                      Status
                     </div>
-                    <div class="platform-cell platform-cell--header">Key</div>
+                    <div class="platform-cell platform-cell--header">Store</div>
+                    <div class="platform-cell platform-cell--header">
+                      Created
+                    </div>
+                    <div class="platform-cell platform-cell--header">Items</div>
                     <div
                       class="platform-cell platform-cell--header platform-cell--action"
                     >
                       Action
                     </div>
                   </div>
-                  <div id="keysTableBody" class="platform-table-body">
+                  <div id="subscriptionsTableBody" class="platform-table-body">
                     <div class="platform-row">
                       <div class="platform-cell table-empty muted">
-                        Loading game keys...
+                        Loading subscriptions...
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
+              <div class="pagination-row">
+                <button
+                  id="prevPageButton"
+                  class="button button--small"
+                  type="button"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  id="nextPageButton"
+                  class="button button--small"
+                  type="button"
+                  disabled
+                >
+                  Next
+                </button>
               </div>
             </article>
           </section>
@@ -67,6 +95,6 @@
 
     <script src="../scripts/custom.js"></script>
     <script type="module" src="../scripts/header.js"></script>
-    <script type="module" src="../scripts/pages/keys.js"></script>
+    <script type="module" src="../scripts/pages/subscriptions.js"></script>
   </body>
 </html>

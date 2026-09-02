@@ -279,5 +279,21 @@ export function createApiClient(config, getSessionToken) {
     getPlatformKeys() {
       return apiRequest("/game/platform-keys/v1");
     },
+
+    getEntitlements(params = {}) {
+      const query = new URLSearchParams();
+      if (params.type) query.set("type", params.type);
+      if (params.cursor) query.set("cursor", params.cursor);
+      if (params.per_page) query.set("per_page", String(params.per_page));
+      if (params.store) query.set("store", params.store);
+      return apiRequest(`/game/entitlements?${query.toString()}`);
+    },
+
+    cancelStripeSubscription(entitlementId) {
+      return apiRequest("/game/store/stripe/cancel", {
+        method: "POST",
+        body: { entitlement_id: entitlementId },
+      });
+    },
   };
 }
