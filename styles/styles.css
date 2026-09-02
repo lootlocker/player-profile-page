@@ -1082,8 +1082,12 @@ input:focus {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) 0;
+  padding: var(--space-4) var(--space-3);
   border-bottom: 1px solid var(--border);
+}
+
+.settings-row:nth-of-type(odd) {
+  background: var(--card-muted);
 }
 
 .settings-row:last-child {
@@ -1091,12 +1095,15 @@ input:focus {
 }
 
 .settings-row .stat__label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   font-weight: 600;
 }
 
 .settings-row strong {
-  font-weight: 600;
-  text-align: right;
+  font-weight: 400;
+  text-align: left;
 }
 
 /* ================================================================================================
@@ -1109,6 +1116,10 @@ input:focus {
   justify-content: flex-end;
   gap: var(--space-2);
   min-width: 0;
+}
+
+.player-name-display .icon-button {
+  margin: -0.5rem 0;
 }
 
 .player-name-inline {
@@ -1361,6 +1372,10 @@ input:focus {
   padding: var(--space-6) var(--space-4);
   background: var(--card-muted);
   border-radius: var(--radius-sm);
+}
+
+.platform-row:nth-child(odd) {
+  background: var(--card-muted);
 }
 
 /* ================================================================================================

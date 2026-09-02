@@ -25,13 +25,6 @@ import {
 } from "../header.js";
 import { subnavTemplate } from "../templates/nav.js";
 
-const STORE_LABELS = {
-  stripe_store: "Stripe",
-  apple_app_store: "Apple App Store",
-  google_play_store: "Google Play",
-  steam_store: "Steam",
-};
-
 const STATUS_CLASSES = {
   active: "status-chip--linked",
   pending: "status-chip--pending",
@@ -210,7 +203,6 @@ function renderRows() {
     .map((entry) => {
       const status = String(entry.status || "").toLowerCase();
       const store = String(entry.store || "");
-      const storeLabel = STORE_LABELS[store] || formatStoreLabel(store);
       const createdDate = formatDate(entry.created_at);
       const itemsCount = Array.isArray(entry.items) ? entry.items.length : 0;
       const statusClass = STATUS_CLASSES[status] || "status-chip--not-linked";
@@ -227,7 +219,6 @@ function renderRows() {
         <div class="platform-cell">
           <span class="status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
         </div>
-        <div class="platform-cell">${escapeHtml(storeLabel)}</div>
         <div class="platform-cell">${escapeHtml(createdDate)}</div>
         <div class="platform-cell">${itemsCount}</div>
         <div class="platform-cell platform-cell--action">${cancelButton}</div>
@@ -305,12 +296,6 @@ function formatDate(isoString) {
   } catch {
     return "—";
   }
-}
-
-function formatStoreLabel(store) {
-  return String(store || "Unknown")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function formatStatusLabel(status) {
