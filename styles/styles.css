@@ -838,6 +838,21 @@ input:focus {
   background: var(--surface);
 }
 
+.button--text {
+  color: var(--text);
+  border-color: transparent;
+  background: transparent;
+}
+
+.button--text:hover:not(:disabled) {
+  text-decoration: underline;
+  filter: none;
+}
+
+.button--text:disabled {
+  opacity: 0.25;
+}
+
 .button--small {
   min-height: var(--control-height-sm);
   padding: var(--space-2) var(--space-3);
