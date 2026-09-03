@@ -109,7 +109,6 @@ async function loadKeys() {
 
   try {
     const data = await api.getPlatformKeys();
-    console.log("[PlatformKeys] response:", data);
     state.keys = data?.platform_keys || [];
   } catch (error) {
     if (isSessionError(error)) {
