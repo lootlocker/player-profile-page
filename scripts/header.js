@@ -59,18 +59,35 @@ export function injectHeader(basePath) {
   const publisher = CONFIG.publisherName || "LootLocker";
 
   placeholder.outerHTML = html`
-    <p id="copyUidStatus" class="notice top-toast hidden" role="status" aria-live="polite"></p>
+    <p
+      id="copyUidStatus"
+      class="notice top-toast hidden"
+      role="status"
+      aria-live="polite"
+    ></p>
     <header class="topbar">
       <div class="brand">
-        <a${backHref ? ` href="${backHref}" aria-label="Back to profile"` : ""}>
-          <img id="brandLogo" src="${logo.light}" class="profile-logo" alt="${publisher}" />
+        <a href="${backHref}" aria-label="${backHref ? "Back to profile" : ""}">
+          <img
+            id="brandLogo"
+            src="${logo.light}"
+            class="profile-logo"
+            alt="${publisher}"
+          />
         </a>
       </div>
       <div class="topbar-actions">
-        <button id="themeToggleButton" class="theme-toggle" aria-label="Enable dark mode" type="button">
+        <button
+          id="themeToggleButton"
+          class="theme-toggle"
+          aria-label="Enable dark mode"
+          type="button"
+        >
           <span class="ui-icon ui-icon--moon" aria-hidden="true"></span>
         </button>
-        <button id="logoutButton" class="button button--ghost" type="button">Sign out</button>
+        <button id="logoutButton" class="button button--ghost" type="button">
+          Sign out
+        </button>
       </div>
     </header>
     <section class="profile-summary" aria-label="Player summary">
@@ -80,7 +97,13 @@ export function injectHeader(basePath) {
           <h2 id="playerName">Player</h2>
           <div class="profile-uid-row">
             <p id="playerUid" class="muted">UID</p>
-            <button id="copyUidButton" class="copy-uid-button" aria-label="Copy Public UID" title="Copy Public UID" type="button">
+            <button
+              id="copyUidButton"
+              class="copy-uid-button"
+              aria-label="Copy Public UID"
+              title="Copy Public UID"
+              type="button"
+            >
               <span class="ui-icon ui-icon--copy" aria-hidden="true"></span>
             </button>
           </div>
