@@ -46,15 +46,18 @@ export function clearNotice(element) {
 
 /**
  * Shows a warning in #globalError when the page is loaded via file:// protocol.
- * Call this early in page init (before any module imports).
+ * Safe to call at any point — internally defers to DOMContentLoaded so the
+ * #globalError element is guaranteed to exist.
  */
 export function checkFileProtocolAndWarn() {
   if (window.location.protocol !== "file:") return;
-  const el = document.getElementById("globalError");
-  if (!el) return;
-  el.textContent =
-    "You are running this page from file://. Use a local web server (for example: python3 -m http.server 8080) so modules, cookies, and API calls work reliably.";
-  el.classList.remove("hidden");
+  document.addEventListener("DOMContentLoaded", function () {
+    const el = document.getElementById("globalError");
+    if (!el) return;
+    el.textContent =
+      "You are running this page from file://. Use a local web server (for example: python3 -m http.server 8080) so modules, cookies, and API calls work reliably.";
+    el.classList.remove("hidden");
+  });
 }
 
 export function escapeHtml(value) {
@@ -90,6 +93,28 @@ export function readableError(error) {
   }
 
   return error.message || "Request failed.";
+}
+
+export function resolveLogoByTheme(config, lightFallback, darkFallback) {
+  const cfg = config || {};
+  return {
+    light: cfg.customLogoLightmode || lightFallback,
+    dark: cfg.customLogoDarkmode || darkFallback,
+  };
+}
+
+export function applyCustomBranding(config) {
+  if (!config) return;
+
+  if (config.customFavicon) {
+    const favicon = document.querySelector("link[rel='icon']");
+    if (favicon) favicon.href = config.customFavicon;
+  }
+
+  if (config.publisherName) {
+    const logo = document.getElementById("authLogo");
+    if (logo) logo.alt = config.publisherName;
+  }
 }
 
 export function applyCustomStylesheets(stylesheets) {
