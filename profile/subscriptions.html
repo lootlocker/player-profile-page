@@ -3,13 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Blocked Players | LootLocker Profile</title>
+    <title>Subscriptions | LootLocker Profile</title>
     <link rel="icon" type="image/x-icon" href="../styles/assets/favicon.ico" />
     <script src="../scripts/init.js"></script>
     <link rel="stylesheet" href="../styles/styles.css" />
     <link rel="stylesheet" href="../styles/custom.css" />
+    <style>
+      #subscriptionsTable .platform-table-header,
+      #subscriptionsTable .platform-row {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    </style>
   </head>
-  <body data-social-type="blocked" data-social-title="Blocked Players">
+  <body>
     <main class="shell">
       <header-placeholder></header-placeholder>
 
@@ -26,58 +32,59 @@
           <section class="content" aria-live="polite">
             <article class="card">
               <div class="section-title-row">
-                <h3 id="listTitle">Blocked Players</h3>
-                <div class="social-head-actions">
-                  <span
-                    class="social-total-pill"
-                    aria-label="Total blocked players"
-                  >
-                    <span class="social-total-pill__label">Total</span>
-                    <strong id="listCount">0</strong>
-                  </span>
-                </div>
+                <h3>Subscriptions</h3>
               </div>
               <p
-                id="listError"
+                id="subscriptionsError"
                 class="notice notice--error hidden"
                 role="alert"
               ></p>
-              <p
-                id="socialActionStatus"
-                class="notice hidden"
-                role="status"
-                aria-live="polite"
-              ></p>
               <div class="platform-table-wrap">
                 <div
-                  id="blockedTable"
-                  class="platform-table social-table social-table--blocked"
-                  aria-label="Blocked players list"
+                  id="subscriptionsTable"
+                  class="platform-table"
+                  aria-label="Subscriptions"
                 >
                   <div class="platform-table-header" role="row">
                     <div class="platform-cell platform-cell--header">
-                      Player
+                      Status
                     </div>
-                    <div
-                      class="platform-cell platform-cell--header header-env-key"
-                      data-env-key="PUBLIC_UID"
-                    >
-                      Public UID
+                    <div class="platform-cell platform-cell--header">
+                      Created
                     </div>
+                    <div class="platform-cell platform-cell--header">Items</div>
                     <div
                       class="platform-cell platform-cell--header platform-cell--action"
                     >
                       Action
                     </div>
                   </div>
-                  <div id="socialList" class="platform-table-body">
+                  <div id="subscriptionsTableBody" class="platform-table-body">
                     <div class="platform-row">
                       <div class="platform-cell table-empty muted">
-                        Loading blocked players...
+                        Loading subscriptions...
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
+              <div class="pagination-row">
+                <button
+                  id="prevPageButton"
+                  class="button button--text button--small"
+                  type="button"
+                  disabled
+                >
+                  Back
+                </button>
+                <button
+                  id="nextPageButton"
+                  class="button button--text button--small"
+                  type="button"
+                  disabled
+                >
+                  Next
+                </button>
               </div>
             </article>
           </section>
@@ -87,6 +94,6 @@
 
     <script src="../scripts/custom.js"></script>
     <script type="module" src="../scripts/header.js"></script>
-    <script type="module" src="../scripts/pages/social-list.js"></script>
+    <script type="module" src="../scripts/pages/subscriptions.js"></script>
   </body>
 </html>

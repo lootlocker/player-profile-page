@@ -44,6 +44,22 @@ export function clearNotice(element) {
   element.classList.add("hidden");
 }
 
+/**
+ * Shows a warning in #globalError when the page is loaded via file:// protocol.
+ * Safe to call at any point — internally defers to DOMContentLoaded so the
+ * #globalError element is guaranteed to exist.
+ */
+export function checkFileProtocolAndWarn() {
+  if (window.location.protocol !== "file:") return;
+  document.addEventListener("DOMContentLoaded", function () {
+    const el = document.getElementById("globalError");
+    if (!el) return;
+    el.textContent =
+      "You are running this page from file://. Use a local web server (for example: python3 -m http.server 8080) so modules, cookies, and API calls work reliably.";
+    el.classList.remove("hidden");
+  });
+}
+
 export function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -77,6 +93,28 @@ export function readableError(error) {
   }
 
   return error.message || "Request failed.";
+}
+
+export function resolveLogoByTheme(config, lightFallback, darkFallback) {
+  const cfg = config || {};
+  return {
+    light: cfg.customLogoLightmode || lightFallback,
+    dark: cfg.customLogoDarkmode || darkFallback,
+  };
+}
+
+export function applyCustomBranding(config) {
+  if (!config) return;
+
+  if (config.customFavicon) {
+    const favicon = document.querySelector("link[rel='icon']");
+    if (favicon) favicon.href = config.customFavicon;
+  }
+
+  if (config.publisherName) {
+    const logo = document.getElementById("authLogo");
+    if (logo) logo.alt = config.publisherName;
+  }
 }
 
 export function applyCustomStylesheets(stylesheets) {
@@ -159,4 +197,40 @@ export function ensureRequiredConfigOrRenderError(config) {
 
   renderMissingConfigPage();
   return false;
+}
+
+export function isModuleEnabled(config, moduleName) {
+  if (!Array.isArray(config?.modules)) {
+    return true;
+  }
+  return config.modules.includes(moduleName);
+}
+
+export function renderModuleDisabledPage(profileHref) {
+  const backLink = profileHref || "profile.html";
+  document.body.innerHTML = `
+    <main style="max-width: 820px; margin: 40px auto; padding: 0 16px; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; color: #e7edf5;">
+      <section style="background:#111927; border:1px solid #28364a; border-radius:12px; padding:20px;">
+        <h1 style="margin:0 0 10px; font-size:20px; color:#fbbf24;">Page Not Found</h1>
+        <p style="margin:0 0 14px; color:#a8b3c2;">This feature is not currently available.</p>
+        <a href="${escapeHtml(backLink)}" style="display:inline-block; padding:8px 16px; background:#2563eb; color:#fff; border-radius:6px; text-decoration:none; font-size:14px;">Back to Profile</a>
+      </section>
+    </main>
+  `;
+}
+
+export function applyModuleVisibility(config) {
+  if (!Array.isArray(config?.modules)) {
+    return;
+  }
+
+  const enabled = new Set(config.modules);
+  const elements = document.querySelectorAll("[data-module]");
+
+  for (const el of elements) {
+    const moduleName = el.getAttribute("data-module");
+    if (!enabled.has(moduleName)) {
+      el.style.display = "none";
+    }
+  }
 }

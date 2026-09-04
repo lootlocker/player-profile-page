@@ -5,132 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LootLocker Profile</title>
     <link rel="icon" type="image/x-icon" href="styles/assets/favicon.ico" />
-    <script>
-      (function () {
-        var match = document.cookie.match(
-          /(?:^|;\s*)ll_theme=(light|dark)(?:;|$)/,
-        );
-        var saved = match ? match[1] : null;
-        var isDark =
-          saved === "dark" ||
-          (!saved &&
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (isDark) {
-          document.documentElement.classList.add("theme-dark");
-        }
-      })();
-    </script>
+    <script src="scripts/init.js"></script>
     <link rel="stylesheet" href="styles/styles.css" />
     <link rel="stylesheet" href="styles/custom.css" />
   </head>
   <body>
     <main class="shell">
-      <p
-        id="copyUidStatus"
-        class="notice top-toast hidden"
-        role="status"
-        aria-live="polite"
-      ></p>
-
-      <header class="topbar">
-        <div class="brand">
-          <img
-            id="brandLogo"
-            src="styles/assets/logo-lightmode.svg"
-            class="profile-logo"
-            alt="LootLocker"
-          />
-        </div>
-        <div class="topbar-actions">
-          <button
-            id="themeToggleButton"
-            class="theme-toggle"
-            aria-label="Enable dark mode"
-            type="button"
-          >
-            <span class="ui-icon ui-icon--moon" aria-hidden="true"></span>
-          </button>
-          <button id="logoutButton" class="button button--ghost" type="button">
-            Sign out
-          </button>
-        </div>
-      </header>
-
-      <section class="profile-summary" aria-label="Player summary">
-        <div class="profile-head">
-          <div id="avatar" class="avatar">--</div>
-          <div class="profile-identity">
-            <h2 id="playerName">Player</h2>
-            <div class="profile-uid-row">
-              <p id="playerUid" class="muted">UID</p>
-              <button
-                id="copyUidButton"
-                class="copy-uid-button"
-                aria-label="Copy Public UID"
-                title="Copy Public UID"
-                type="button"
-              >
-                <span class="ui-icon ui-icon--copy" aria-hidden="true"></span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <header-placeholder></header-placeholder>
 
       <section id="pageLayout" class="page-layout">
-        <div id="pageLayoutNav" class="page-layout__nav">
-          <nav class="page-tabs" aria-label="Profile navigation">
-            <a
-              class="page-tab-link is-active"
-              href="profile.html"
-              aria-current="page"
-              >Profile</a
-            >
-            <div class="social-menu">
-              <details class="social-menu__details">
-                <summary class="page-tab-link social-menu__summary">
-                  <span>Social</span>
-                  <span class="social-menu__arrow" aria-hidden="true"></span>
-                </summary>
-                <div
-                  class="social-menu__card"
-                  role="menu"
-                  aria-label="Social navigation"
-                >
-                  <a
-                    class="social-menu__link"
-                    href="profile/friends.html"
-                    role="menuitem"
-                    >Friends</a
-                  >
-                  <a
-                    class="social-menu__link"
-                    href="profile/followers.html"
-                    role="menuitem"
-                    >Followers</a
-                  >
-                  <a
-                    class="social-menu__link"
-                    href="profile/following.html"
-                    role="menuitem"
-                    >Following</a
-                  >
-                  <a
-                    class="social-menu__link"
-                    href="profile/blocked.html"
-                    role="menuitem"
-                    >Blocked</a
-                  >
-                </div>
-              </details>
-            </div>
-            <a class="page-tab-link" href="profile/platforms.html"
-              >Connected Accounts</a
-            >
-          </nav>
-          <div class="page-tabs-divider" aria-hidden="true"></div>
-        </div>
+        <nav-placeholder></nav-placeholder>
 
         <div id="pageLayoutMain" class="page-layout__main">
           <section
@@ -257,6 +141,7 @@
     </main>
 
     <script src="scripts/custom.js"></script>
+    <script type="module" src="scripts/header.js"></script>
     <script type="module" src="scripts/pages/profile.js"></script>
   </body>
 </html>
